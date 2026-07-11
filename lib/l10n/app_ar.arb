@@ -1,0 +1,378 @@
+{
+  "@@locale": "ar",
+  "appName": "مصروفي",
+  "@appName": {
+    "description": "Application name."
+  },
+  "dashboardTab": "الرئيسية",
+  "@dashboardTab": {
+    "description": "Dashboard navigation tab label."
+  },
+  "historyTab": "السجل",
+  "@historyTab": {
+    "description": "History navigation tab label."
+  },
+  "reportsTab": "التقارير",
+  "@reportsTab": {
+    "description": "Reports navigation tab label."
+  },
+  "budgetsTab": "الميزانيات",
+  "@budgetsTab": {
+    "description": "Budgets navigation tab label."
+  },
+  "settingsTab": "الإعدادات",
+  "@settingsTab": {
+    "description": "Settings navigation tab label."
+  },
+  "dashboardEmptyTitle": "لا توجد معاملات حتى الآن",
+  "@dashboardEmptyTitle": {
+    "description": "Dashboard empty state title."
+  },
+  "dashboardEmptyBody": "ستظهر ملخصات اليوم والأسبوع والشهر هنا.",
+  "@dashboardEmptyBody": {
+    "description": "Dashboard empty state body."
+  },
+  "historyEmptyTitle": "السجل فارغ",
+  "@historyEmptyTitle": {
+    "description": "History empty state title."
+  },
+  "historyEmptyBody": "ستظهر المعاملات مرتبة حسب التاريخ.",
+  "@historyEmptyBody": {
+    "description": "History empty state body."
+  },
+  "reportsEmptyTitle": "لا توجد بيانات للتقارير",
+  "@reportsEmptyTitle": {
+    "description": "Reports empty state title."
+  },
+  "reportsEmptyBody": "ستظهر الرسوم البيانية بعد تسجيل معاملات.",
+  "@reportsEmptyBody": {
+    "description": "Reports empty state body."
+  },
+  "budgetsEmptyTitle": "لا توجد ميزانيات",
+  "@budgetsEmptyTitle": {
+    "description": "Budgets empty state title."
+  },
+  "budgetsEmptyBody": "ستظهر الميزانيات الشهرية لكل تصنيف هنا.",
+  "@budgetsEmptyBody": {
+    "description": "Budgets empty state body."
+  },
+  "settingsTitle": "الإعدادات",
+  "@settingsTitle": {
+    "description": "Settings screen title."
+  },
+  "languageSectionTitle": "اللغة",
+  "themeSectionTitle": "المظهر",
+  "themeModeSystem": "حسب النظام",
+  "@themeModeSystem": {
+    "description": "System theme mode label."
+  },
+  "themeModeLight": "فاتح",
+  "themeModeDark": "داكن",
+  "languageArabic": "العربية",
+  "@languageArabic": {
+    "description": "Arabic language label."
+  },
+  "languageEnglish": "الإنجليزية",
+  "addTransaction": "إضافة",
+  "addTransactionTitle": "إضافة معاملة",
+  "saveTransaction": "حفظ المعاملة",
+  "transactionSavedMessage": "تم حفظ المعاملة",
+  "transactionTypeExpenseForm": "مصروف",
+  "transactionTypeIncomeForm": "دخل",
+  "transactionAmountLabel": "المبلغ",
+  "transactionAmountRequired": "أدخل مبلغًا صحيحًا",
+  "transactionCategoryLabel": "التصنيف",
+  "transactionCategoryRequired": "اختر التصنيف",
+  "transactionPersonLabel": "اسم الشخص",
+  "transactionWalletLabel": "المحفظة",
+  "transactionNoteLabel": "ملاحظة",
+  "transactionDeleteTooltip": "حذف المعاملة",
+  "unknownCategory": "تصنيف غير معروف",
+  "dashboardStartHint": "اضغط إضافة لتسجيل أول مصروف.",
+  "dashboardSummaryTitle": "ملخص المصاريف",
+  "dashboardRecentTransactionsTitle": "آخر المعاملات",
+  "summaryToday": "اليوم",
+  "summaryWeek": "الأسبوع",
+  "summaryMonth": "الشهر",
+  "summaryExpense": "مصروف",
+  "summaryIncome": "دخل",
+  "summaryNet": "الصافي {amount}",
+  "historyStartHint": "ابدأ من زر إضافة بالأسفل.",
+  "historyTitle": "السجل",
+  "reportsStartHint": "سجل مصروفًا واحدًا لترى التوزيع.",
+  "reportsTitle": "تقرير المصروفات",
+  "reportsTotalExpense": "إجمالي المصروفات {amount}",
+  "reportsExpenseRatio": "{percentage}% من المصروفات",
+  "currencySymbol": "ج.م",
+  "settingsWalletBalancesTitle": "أرصدة المحافظ",
+  "settingsWalletBalancesSubtitle": "متابعة رصيد إنستاباي وفودافون كاش",
+  "walletBalancesTitle": "أرصدة المحافظ",
+  "walletBalancesIntro": "سجل رصيدك الحالي مرة واحدة. أي دخل أو مصروف لاحق على نفس المحفظة سيحدث الرصيد تلقائيًا.",
+  "walletBalanceEditAction": "تعديل",
+  "walletTransactionNet": "صافي المعاملات: {amount}",
+  "walletBalanceDialogTitle": "رصيد {walletName}",
+  "walletCurrentBalanceLabel": "الرصيد الحالي",
+  "walletCurrentBalanceRequired": "أدخل رصيدًا صحيحًا",
+  "walletBalanceSavedMessage": "تم حفظ رصيد المحفظة",
+  "walletBalancesLoadError": "تعذر تحميل أرصدة المحافظ",
+  "settingsCategoriesTitle": "تصنيفات المعاملات",
+  "@settingsCategoriesTitle": {
+    "description": "Settings entry title for category management."
+  },
+  "settingsCategoriesSubtitle": "إدارة التصنيفات الافتراضية والمخصصة",
+  "@settingsCategoriesSubtitle": {
+    "description": "Settings entry subtitle for category management."
+  },
+  "categoriesTitle": "التصنيفات",
+  "@categoriesTitle": {
+    "description": "Category management screen title."
+  },
+  "categoriesIntro": "تحكّم في التصنيفات الظاهرة وحدد المحفظة الافتراضية لكل تصنيف.",
+  "@categoriesIntro": {
+    "description": "Category management screen introduction."
+  },
+  "transactionTypeExpense": "صادر",
+  "@transactionTypeExpense": {
+    "description": "Expense transaction type label."
+  },
+  "transactionTypeIncome": "وارد",
+  "@transactionTypeIncome": {
+    "description": "Income transaction type label."
+  },
+  "defaultCategoriesSection": "التصنيفات الافتراضية",
+  "@defaultCategoriesSection": {
+    "description": "Default categories section heading."
+  },
+  "customCategoriesSection": "تصنيفاتك",
+  "@customCategoriesSection": {
+    "description": "Custom categories section heading."
+  },
+  "addCategory": "إضافة تصنيف",
+  "@addCategory": {
+    "description": "Add custom category action."
+  },
+  "editCategory": "تعديل التصنيف",
+  "@editCategory": {
+    "description": "Edit custom category form title."
+  },
+  "categoryNameLabel": "اسم التصنيف",
+  "@categoryNameLabel": {
+    "description": "Category name field label."
+  },
+  "categoryIconLabel": "الأيقونة",
+  "@categoryIconLabel": {
+    "description": "Category icon picker label."
+  },
+  "categoryColorLabel": "اللون",
+  "@categoryColorLabel": {
+    "description": "Category color picker label."
+  },
+  "categoryDefaultWalletLabel": "المحفظة الافتراضية",
+  "@categoryDefaultWalletLabel": {
+    "description": "Default wallet field label."
+  },
+  "categoryDefaultWalletValue": "المحفظة الافتراضية: {walletName}",
+  "@categoryDefaultWalletValue": {
+    "description": "Displays a category's selected default wallet.",
+    "placeholders": {
+      "walletName": {
+        "type": "String",
+        "example": "إنستاباي"
+      }
+    }
+  },
+  "categoryNoDefaultWallet": "بدون محفظة افتراضية",
+  "@categoryNoDefaultWallet": {
+    "description": "No default wallet option."
+  },
+  "changeDefaultWallet": "تغيير المحفظة الافتراضية",
+  "@changeDefaultWallet": {
+    "description": "Tooltip for changing a category's default wallet."
+  },
+  "categoryHidden": "مخفي",
+  "@categoryHidden": {
+    "description": "Badge shown on a hidden category."
+  },
+  "showCategoryLabel": "إظهار {categoryName}",
+  "@showCategoryLabel": {
+    "description": "Accessibility label for showing a category.",
+    "placeholders": {
+      "categoryName": {
+        "type": "String",
+        "example": "أكل وشرب"
+      }
+    }
+  },
+  "hideCategoryLabel": "إخفاء {categoryName}",
+  "@hideCategoryLabel": {
+    "description": "Accessibility label for hiding a category.",
+    "placeholders": {
+      "categoryName": {
+        "type": "String",
+        "example": "أكل وشرب"
+      }
+    }
+  },
+  "editCategoryLabel": "تعديل {categoryName}",
+  "@editCategoryLabel": {
+    "description": "Accessibility label for editing a custom category.",
+    "placeholders": {
+      "categoryName": {
+        "type": "String",
+        "example": "الجيم"
+      }
+    }
+  },
+  "categoryIconOptionLabel": "خيار الأيقونة {index}",
+  "@categoryIconOptionLabel": {
+    "description": "Accessibility label for a category icon option.",
+    "placeholders": {
+      "index": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "categoryColorOptionLabel": "خيار اللون {index}",
+  "@categoryColorOptionLabel": {
+    "description": "Accessibility label for a category color option.",
+    "placeholders": {
+      "index": {
+        "type": "int",
+        "example": "1"
+      }
+    }
+  },
+  "noCustomCategoriesTitle": "لا توجد تصنيفات مخصصة",
+  "@noCustomCategoriesTitle": {
+    "description": "Custom categories empty state title."
+  },
+  "noCustomCategoriesBody": "أضف تصنيفًا يناسب طريقة متابعتك لأموالك.",
+  "@noCustomCategoriesBody": {
+    "description": "Custom categories empty state body."
+  },
+  "noCategoriesTitle": "لا توجد تصنيفات هنا بعد",
+  "@noCategoriesTitle": {
+    "description": "Empty category type title."
+  },
+  "noCategoriesBody": "أضف تصنيفًا مخصصًا للبدء.",
+  "@noCategoriesBody": {
+    "description": "Empty category type body."
+  },
+  "categoryNameRequired": "أدخل اسم التصنيف",
+  "@categoryNameRequired": {
+    "description": "Required category name validation message."
+  },
+  "categoryNameAlreadyExists": "يوجد تصنيف بهذا الاسم بالفعل",
+  "@categoryNameAlreadyExists": {
+    "description": "Duplicate category name validation message."
+  },
+  "categoryCreatedMessage": "تمت إضافة التصنيف",
+  "@categoryCreatedMessage": {
+    "description": "Confirmation shown after adding a custom category."
+  },
+  "categoryUpdatedMessage": "تم تحديث التصنيف",
+  "@categoryUpdatedMessage": {
+    "description": "Confirmation shown after editing a custom category."
+  },
+  "categoriesLoadError": "تعذر تحميل التصنيفات",
+  "@categoriesLoadError": {
+    "description": "Category loading error message."
+  },
+  "categoriesSaveError": "تعذر حفظ التغييرات",
+  "@categoriesSaveError": {
+    "description": "Category save error message."
+  },
+  "commonCancel": "إلغاء",
+  "@commonCancel": {
+    "description": "Generic cancel action."
+  },
+  "commonSave": "حفظ",
+  "@commonSave": {
+    "description": "Generic save action."
+  },
+  "commonRetry": "إعادة المحاولة",
+  "@commonRetry": {
+    "description": "Generic retry action."
+  },
+  "walletCash": "الكاش",
+  "@walletCash": {
+    "description": "Cash wallet label."
+  },
+  "walletInstaPay": "إنستاباي",
+  "@walletInstaPay": {
+    "description": "InstaPay wallet label."
+  },
+  "walletVodafoneCash": "فودافون كاش",
+  "@walletVodafoneCash": {
+    "description": "Vodafone Cash wallet label."
+  },
+  "categoryExpenseFoodAndDrink": "أكل وشرب",
+  "@categoryExpenseFoodAndDrink": {
+    "description": "Built-in food and drink expense category."
+  },
+  "categoryExpenseCafesRestaurants": "كافيهات ومطاعم",
+  "@categoryExpenseCafesRestaurants": {
+    "description": "Built-in cafes and restaurants expense category."
+  },
+  "categoryExpenseTransport": "نقل ومواصلات",
+  "@categoryExpenseTransport": {
+    "description": "Built-in transport expense category."
+  },
+  "categoryExpenseClothing": "ملابس",
+  "@categoryExpenseClothing": {
+    "description": "Built-in clothing expense category."
+  },
+  "categoryExpenseHealthcare": "علاج وأدوية",
+  "@categoryExpenseHealthcare": {
+    "description": "Built-in medical expense category."
+  },
+  "categoryExpenseHousehold": "مصاريف منزلية",
+  "@categoryExpenseHousehold": {
+    "description": "Built-in household expense category."
+  },
+  "categoryExpenseExtra": "مصاريف إضافية",
+  "@categoryExpenseExtra": {
+    "description": "Built-in extra expenses category."
+  },
+  "categoryExpensePersonTransfer": "تحويلات لأشخاص",
+  "@categoryExpensePersonTransfer": {
+    "description": "Built-in person transfer expense category."
+  },
+  "categoryExpensePersonalCare": "حلاقة وعناية شخصية",
+  "@categoryExpensePersonalCare": {
+    "description": "Built-in personal care expense category."
+  },
+  "categoryExpenseSubscriptions": "اشتراكات",
+  "@categoryExpenseSubscriptions": {
+    "description": "Built-in subscriptions expense category."
+  },
+  "categoryExpenseEntertainment": "ترفيه وخروجات",
+  "@categoryExpenseEntertainment": {
+    "description": "Built-in entertainment expense category."
+  },
+  "categoryExpenseOther": "أخرى",
+  "@categoryExpenseOther": {
+    "description": "Built-in other expense category."
+  },
+  "categoryIncomeSalary": "راتب",
+  "@categoryIncomeSalary": {
+    "description": "Built-in salary income category."
+  },
+  "categoryIncomeFreelance": "عمل حر",
+  "@categoryIncomeFreelance": {
+    "description": "Built-in freelance income category."
+  },
+  "categoryIncomeOther": "دخل آخر",
+  "@categoryIncomeOther": {
+    "description": "Built-in other income category."
+  },
+  "notFoundTitle": "تعذر فتح الصفحة",
+  "@notFoundTitle": {
+    "description": "Route error title."
+  },
+  "notFoundBody": "الوجهة المطلوبة غير متاحة.",
+  "@notFoundBody": {
+    "description": "Route error body."
+  }
+}

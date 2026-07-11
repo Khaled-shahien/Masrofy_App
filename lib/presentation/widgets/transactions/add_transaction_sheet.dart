@@ -1,0 +1,296 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../domain/entities/category.dart';
+import '../../../domain/entities/transaction_type.dart';
+import '../../../domain/entities/wallet_type.dart';
+import '../../../domain/usecases/transactions/save_transaction.dart';
+import '../../../l10n/generated/app_localizations.dart';
+import '../../cubits/transactions/transactions_cubit.dart';
+import '../../cubits/transactions/transactions_state.dart';
+import '../categories/category_localization.dart';
+import '../categories/category_visual_registry.dart';
+import 'transaction_formatters.dart';
+
+class AddTransactionSheet extends StatefulWidget {
+  const AddTransactionSheet({super.key});
+
+  @override
+  State<AddTransactionSheet> createState() => _AddTransactionSheetState();
+}
+
+class _AddTransactionSheetState extends State<AddTransactionSheet> {
+  final _formKey = GlobalKey<FormState>();
+  final _amountController = TextEditingController();
+  final _noteController = TextEditingController();
+  final _personController = TextEditingController();
+
+  TransactionType _type = TransactionType.expense;
+  String? _categoryId;
+  WalletType? _wallet = WalletType.cash;
+  DateTime _date = DateTime.now();
+
+  @override
+  void dispose() {
+    _amountController.dispose();
+    _noteController.dispose();
+    _personController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocConsumer<TransactionsCubit, TransactionsState>(
+      listenWhen: (previous, current) =>
+          previous.errorMessage != current.errorMessage &&
+          current.errorMessage != null,
+      listener: (context, state) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(state.errorMessage!)),
+        );
+      },
+      builder: (context, state) {
+        final l10n = AppLocalizations.of(context);
+        final categories = state.categories
+            .where((category) => category.type == _type)
+            .toList(growable: false);
+        if (_categoryId == null && categories.isNotEmpty) {
+          _categoryId = categories.first.id;
+        }
+        final selectedCategory = _selectedCategory(categories);
+
+        return SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              bottom: MediaQuery.viewInsetsOf(context).bottom + 16,
+              top: 16,
+            ),
+            child: Form(
+              key: _formKey,
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      l10n.addTransactionTitle,
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                    const SizedBox(height: 16),
+                    SegmentedButton<TransactionType>(
+                      segments: [
+                        ButtonSegment(
+                          value: TransactionType.expense,
+                          icon: const Icon(Icons.arrow_downward),
+                          label: Text(l10n.transactionTypeExpenseForm),
+                        ),
+                        ButtonSegment(
+                          value: TransactionType.income,
+                          icon: const Icon(Icons.arrow_upward),
+                          label: Text(l10n.transactionTypeIncomeForm),
+                        ),
+                      ],
+                      selected: {_type},
+                      onSelectionChanged: (selection) {
+                        setState(() {
+                          _type = selection.first;
+                          _categoryId = null;
+                        });
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      key: const ValueKey('transaction_amount_field'),
+                      controller: _amountController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.payments_outlined),
+                        border: OutlineInputBorder(),
+                      ).copyWith(labelText: l10n.transactionAmountLabel),
+                      validator: (value) {
+                        final amount = _parseAmount(value);
+                        if (amount == null || amount <= 0) {
+                          return l10n.transactionAmountRequired;
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      key: const ValueKey('transaction_category_field'),
+                      initialValue:
+                          categories.any(
+                            (category) => category.id == _categoryId,
+                          )
+                          ? _categoryId
+                          : null,
+                      decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.category_outlined),
+                        border: OutlineInputBorder(),
+                      ).copyWith(labelText: l10n.transactionCategoryLabel),
+                      items: [
+                        for (final category in categories)
+                          DropdownMenuItem(
+                            value: category.id,
+                            child: _CategoryOption(category: category),
+                          ),
+                      ],
+                      onChanged: (value) => setState(() => _categoryId = value),
+                      validator: (value) => value == null
+                          ? l10n.transactionCategoryRequired
+                          : null,
+                    ),
+                    if (selectedCategory?.behavior ==
+                        CategoryBehavior.personTransfer) ...[
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _personController,
+                        decoration: const InputDecoration(
+                          prefixIcon: Icon(Icons.person_outline),
+                          border: OutlineInputBorder(),
+                        ).copyWith(labelText: l10n.transactionPersonLabel),
+                      ),
+                    ],
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<WalletType>(
+                      initialValue: _wallet,
+                      decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.account_balance_wallet_outlined),
+                        border: OutlineInputBorder(),
+                      ).copyWith(labelText: l10n.transactionWalletLabel),
+                      items: [
+                        DropdownMenuItem(
+                          value: WalletType.cash,
+                          child: Text(l10n.walletCash),
+                        ),
+                        DropdownMenuItem(
+                          value: WalletType.instaPay,
+                          child: Text(l10n.walletInstaPay),
+                        ),
+                        DropdownMenuItem(
+                          value: WalletType.vodafoneCash,
+                          child: Text(l10n.walletVodafoneCash),
+                        ),
+                      ],
+                      onChanged: (value) => setState(() => _wallet = value),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _noteController,
+                      decoration: const InputDecoration(
+                        prefixIcon: Icon(Icons.notes_outlined),
+                        border: OutlineInputBorder(),
+                      ).copyWith(labelText: l10n.transactionNoteLabel),
+                      maxLines: 2,
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: _pickDate,
+                      icon: const Icon(Icons.calendar_month_outlined),
+                      label: Text(
+                        formatDay(_date, localeName: l10n.localeName),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      key: const ValueKey('save_transaction_button'),
+                      onPressed: state.isSaving ? null : _save,
+                      icon: state.isSaving
+                          ? const SizedBox.square(
+                              dimension: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : const Icon(Icons.check),
+                      label: Text(l10n.saveTransaction),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Category? _selectedCategory(List<Category> categories) {
+    for (final category in categories) {
+      if (category.id == _categoryId) {
+        return category;
+      }
+    }
+    return null;
+  }
+
+  Future<void> _pickDate() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _date,
+      firstDate: DateTime(2020),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null) {
+      setState(() => _date = picked);
+    }
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) {
+      return;
+    }
+    final saved = await context.read<TransactionsCubit>().save(
+      SaveTransactionInput(
+        type: _type,
+        amount: _parseAmount(_amountController.text)!,
+        categoryId: _categoryId!,
+        date: _date,
+        note: _noteController.text,
+        wallet: _wallet,
+        personName: _personController.text,
+      ),
+    );
+    if (saved && mounted) {
+      final l10n = AppLocalizations.of(context);
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.transactionSavedMessage)),
+      );
+    }
+  }
+}
+
+class _CategoryOption extends StatelessWidget {
+  const _CategoryOption({required this.category});
+
+  final Category category;
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          categoryIconFor(category.iconKey),
+          color: Color(category.colorValue),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          localizedCategoryName(localizations, category),
+          overflow: TextOverflow.ellipsis,
+        ),
+      ],
+    );
+  }
+}
+
+double? _parseAmount(String? value) {
+  if (value == null) {
+    return null;
+  }
+  return double.tryParse(value.replaceAll(',', '.').trim());
+}
