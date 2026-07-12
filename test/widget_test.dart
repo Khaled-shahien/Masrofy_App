@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:masrofy/app/masrofy_app.dart';
+import 'package:masrofy/core/security/secure_value_store.dart';
 import 'package:masrofy/di/service_locator.dart';
 import 'package:masrofy/presentation/widgets/transactions/transaction_formatters.dart';
 
 void main() {
   setUp(() async {
+    serviceLocator.registerSingleton<SecureValueStore>(
+      InMemorySecureValueStore(),
+    );
     await configureDependencies();
   });
 

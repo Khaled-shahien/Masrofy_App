@@ -25,15 +25,50 @@ void main() {
     expect(decoded.toDomain(), transaction);
   });
 
-  test('FinancialTransactionModel tolerates missing legacy values', () {
-    final model = FinancialTransactionModel.fromJson({
-      'id': 'legacy',
-      'amount': 20,
-      'categoryId': 'expense_other',
-    });
+  test(
+    'FinancialTransactionModel accepts legacy records without timestamps',
+    () {
+      final model = FinancialTransactionModel.fromJson({
+        'id': 'legacy',
+        'amount': 20,
+        'categoryId': 'expense_other',
+        'date': '2026-07-11T00:00:00.000',
+        'futureField': 'ignored',
+      });
 
-    expect(model.type, TransactionType.expense);
-    expect(model.amount, 20);
-    expect(model.wallet, isNull);
+      expect(model.type, TransactionType.expense);
+      expect(model.amount, 20);
+      expect(model.wallet, isNull);
+      expect(model.createdAt, DateTime.parse('2026-07-11T00:00:00.000'));
+      expect(model.updatedAt, DateTime.parse('2026-07-11T00:00:00.000'));
+    },
+  );
+
+  test('FinancialTransactionModel rejects invalid dates and enums', () {
+    expect(
+      () => FinancialTransactionModel.fromJson({
+        'id': 'bad-date',
+        'amount': 20,
+        'categoryId': 'expense_other',
+        'type': 'expense',
+        'date': 'invalid-date',
+        'createdAt': '2026-07-11T00:00:00.000',
+        'updatedAt': '2026-07-11T00:00:00.000',
+      }),
+      throwsFormatException,
+    );
+
+    expect(
+      () => FinancialTransactionModel.fromJson({
+        'id': 'bad-enum',
+        'amount': 20,
+        'categoryId': 'expense_other',
+        'type': 'not-a-type',
+        'date': '2026-07-11T00:00:00.000',
+        'createdAt': '2026-07-11T00:00:00.000',
+        'updatedAt': '2026-07-11T00:00:00.000',
+      }),
+      throwsFormatException,
+    );
   });
 }

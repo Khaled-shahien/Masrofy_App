@@ -8,18 +8,21 @@ import '../../../domain/entities/transaction_type.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../categories/category_localization.dart';
 import '../categories/category_visual_registry.dart';
+import '../privacy/financial_privacy.dart';
 import 'transaction_formatters.dart';
 
 class TransactionListTile extends StatelessWidget {
   const TransactionListTile({
     required this.transaction,
     required this.category,
+    this.onTap,
     this.onDelete,
     super.key,
   });
 
   final FinancialTransaction transaction;
   final Category? category;
+  final VoidCallback? onTap;
   final VoidCallback? onDelete;
 
   @override
@@ -27,6 +30,7 @@ class TransactionListTile extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final colors = Theme.of(context).extension<MasrofyThemeExtension>()!;
     final localizations = AppLocalizations.of(context);
+    final obscureAmount = financialAmountsObscured(context);
     final category = this.category;
     final categoryName = category == null
         ? localizations.unknownCategory
@@ -39,6 +43,7 @@ class TransactionListTile extends StatelessWidget {
         : colors.income;
 
     return ListTile(
+      onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.xxs,
       ),
@@ -69,6 +74,7 @@ class TransactionListTile extends StatelessWidget {
               transaction,
               localeName: localizations.localeName,
               currencySymbol: localizations.currencySymbol,
+              obscure: obscureAmount,
             ),
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               color: amountColor,

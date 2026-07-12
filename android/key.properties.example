@@ -1,0 +1,7 @@
+# Copy this file to android/key.properties or use the matching
+# MASROFY_ANDROID_* environment variables for release signing.
+# Do not commit android/key.properties or keystore files.
+storeFile=relative/path/to/release-keystore.jks
+storePassword=REPLACE_WITH_SECURE_STORE_PASSWORD
+keyAlias=REPLACE_WITH_KEY_ALIAS
+keyPassword=REPLACE_WITH_SECURE_KEY_PASSWORD

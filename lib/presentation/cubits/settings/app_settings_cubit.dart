@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -10,6 +12,8 @@ class AppSettingsState extends Equatable {
   const AppSettingsState({
     required this.locale,
     required this.themeMode,
+    required this.hideFinancialAmounts,
+    this.revealFinancialAmounts = false,
   });
 
   /// Current application locale.
@@ -18,18 +22,37 @@ class AppSettingsState extends Equatable {
   /// Current application theme mode.
   final ThemeMode themeMode;
 
+  /// Whether financial values should be hidden by default.
+  final bool hideFinancialAmounts;
+
+  /// Whether hidden financial values are temporarily visible.
+  final bool revealFinancialAmounts;
+
+  bool get shouldMaskFinancialAmounts =>
+      hideFinancialAmounts && !revealFinancialAmounts;
+
   AppSettingsState copyWith({
     Locale? locale,
     ThemeMode? themeMode,
+    bool? hideFinancialAmounts,
+    bool? revealFinancialAmounts,
   }) {
     return AppSettingsState(
       locale: locale ?? this.locale,
       themeMode: themeMode ?? this.themeMode,
+      hideFinancialAmounts: hideFinancialAmounts ?? this.hideFinancialAmounts,
+      revealFinancialAmounts:
+          revealFinancialAmounts ?? this.revealFinancialAmounts,
     );
   }
 
   @override
-  List<Object> get props => [locale, themeMode];
+  List<Object> get props => [
+    locale,
+    themeMode,
+    hideFinancialAmounts,
+    revealFinancialAmounts,
+  ];
 }
 
 /// Coordinates user-facing app preferences.
@@ -41,10 +64,24 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
         AppSettingsState(
           locale: Locale(store.localeCode),
           themeMode: store.themeMode,
+          hideFinancialAmounts: store.hideFinancialAmounts,
         ),
       );
 
   final AppSettingsStore _store;
+  Timer? _revealTimer;
+
+  /// Refreshes preference state after an external restore/reset operation.
+  void reload() {
+    emit(
+      AppSettingsState(
+        locale: Locale(_store.localeCode),
+        themeMode: _store.themeMode,
+        hideFinancialAmounts: _store.hideFinancialAmounts,
+        revealFinancialAmounts: false,
+      ),
+    );
+  }
 
   /// Updates and persists the active locale.
   Future<void> setLocale(Locale locale) async {
@@ -62,5 +99,52 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
     }
     emit(state.copyWith(themeMode: themeMode));
     await _store.saveThemeMode(themeMode);
+  }
+
+  /// Enables or disables financial amount masking.
+  Future<void> setHideFinancialAmounts(bool hideFinancialAmounts) async {
+    if (hideFinancialAmounts == state.hideFinancialAmounts) {
+      return;
+    }
+    _cancelRevealTimer();
+    emit(
+      state.copyWith(
+        hideFinancialAmounts: hideFinancialAmounts,
+        revealFinancialAmounts: false,
+      ),
+    );
+    await _store.saveHideFinancialAmounts(hideFinancialAmounts);
+  }
+
+  /// Reveals hidden amounts temporarily, or hides them immediately if visible.
+  void toggleFinancialAmountReveal({
+    Duration duration = const Duration(seconds: 30),
+  }) {
+    if (!state.hideFinancialAmounts) {
+      return;
+    }
+    if (state.revealFinancialAmounts) {
+      _cancelRevealTimer();
+      emit(state.copyWith(revealFinancialAmounts: false));
+      return;
+    }
+    emit(state.copyWith(revealFinancialAmounts: true));
+    _cancelRevealTimer();
+    _revealTimer = Timer(duration, () {
+      if (!isClosed) {
+        emit(state.copyWith(revealFinancialAmounts: false));
+      }
+    });
+  }
+
+  void _cancelRevealTimer() {
+    _revealTimer?.cancel();
+    _revealTimer = null;
+  }
+
+  @override
+  Future<void> close() {
+    _cancelRevealTimer();
+    return super.close();
   }
 }

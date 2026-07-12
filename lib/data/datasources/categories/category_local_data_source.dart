@@ -18,6 +18,9 @@ abstract interface class CategoryLocalDataSource {
 
   /// Creates or replaces category records by identifier.
   Future<void> saveCategories(Iterable<CategoryModel> categories);
+
+  /// Replaces every local category with [categories].
+  Future<void> replaceCategories(Iterable<CategoryModel> categories);
 }
 
 /// Persists category JSON in a versioned Hive string box.
@@ -44,6 +47,12 @@ class HiveCategoryLocalDataSource implements CategoryLocalDataSource {
   @override
   Future<void> saveCategory(CategoryModel category) {
     return _box.put(category.id, jsonEncode(category.toJson()));
+  }
+
+  @override
+  Future<void> replaceCategories(Iterable<CategoryModel> categories) async {
+    await _box.clear();
+    await saveCategories(categories);
   }
 
   @override
@@ -88,6 +97,14 @@ class InMemoryCategoryLocalDataSource implements CategoryLocalDataSource {
   @override
   Future<void> saveCategory(CategoryModel category) async {
     _records[category.id] = category;
+    _changes.add(null);
+  }
+
+  @override
+  Future<void> replaceCategories(Iterable<CategoryModel> categories) async {
+    _records
+      ..clear()
+      ..addAll({for (final category in categories) category.id: category});
     _changes.add(null);
   }
 

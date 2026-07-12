@@ -36,6 +36,7 @@ void main() {
         'name': 'Legacy',
         'is_hidden': true,
         'default_wallet': 'cash',
+        'futureField': 'ignored',
       });
 
       expect(decoded.type, TransactionType.expense);
@@ -46,14 +47,35 @@ void main() {
       expect(decoded.behavior, CategoryBehavior.standard);
     });
 
-    test('maps an unknown wallet value to null', () {
-      final decoded = CategoryModel.fromJson(const {
-        'id': 'future-wallet',
-        'name': 'Future wallet',
-        'defaultWallet': 'unavailableWallet',
-      });
+    test('rejects an unknown wallet value', () {
+      expect(
+        () => CategoryModel.fromJson(const {
+          'id': 'future-wallet',
+          'name': 'Future wallet',
+          'defaultWallet': 'unavailableWallet',
+        }),
+        throwsFormatException,
+      );
+    });
 
-      expect(decoded.defaultWallet, isNull);
+    test('rejects invalid enum values', () {
+      expect(
+        () => CategoryModel.fromJson(const {
+          'id': 'future-type',
+          'name': 'Future',
+          'type': 'broken',
+        }),
+        throwsFormatException,
+      );
+
+      expect(
+        () => CategoryModel.fromJson(const {
+          'id': 'future-wallet',
+          'name': 'Future',
+          'defaultWallet': 'broken',
+        }),
+        throwsFormatException,
+      );
     });
   });
 }

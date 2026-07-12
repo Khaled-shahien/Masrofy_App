@@ -48,4 +48,32 @@ void main() {
       throwsA(isA<TransactionValidationException>()),
     );
   });
+
+  test('SaveTransaction updates an existing transaction ID', () async {
+    final dataSource = InMemoryTransactionLocalDataSource();
+    addTearDown(dataSource.close);
+    final repository = TransactionRepositoryImpl(localDataSource: dataSource);
+    final createdAt = DateTime(2026, 7, 10, 9);
+    final usecase = SaveTransaction(
+      repository: repository,
+      generateId: () => 'unused',
+      now: () => DateTime(2026, 7, 12, 10),
+    );
+
+    await usecase(
+      SaveTransactionInput(
+        id: 'tx-1',
+        createdAt: createdAt,
+        type: TransactionType.expense,
+        amount: 250,
+        categoryId: 'expense_food_drink',
+        date: DateTime(2026, 7, 11),
+      ),
+    );
+
+    final transaction = (await repository.getTransactions()).single;
+    expect(transaction.id, 'tx-1');
+    expect(transaction.createdAt, createdAt);
+    expect(transaction.updatedAt, DateTime(2026, 7, 12, 10));
+  });
 }

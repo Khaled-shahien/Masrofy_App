@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:masrofy/data/catalog/default_category_catalog.dart';
+import 'package:masrofy/data/datasources/budgets/budget_local_data_source.dart';
 import 'package:masrofy/data/datasources/categories/category_local_data_source.dart';
 import 'package:masrofy/di/service_locator.dart';
 import 'package:masrofy/domain/repositories/category_repository.dart';
@@ -14,6 +15,10 @@ void main() {
     expect(
       serviceLocator<CategoryLocalDataSource>(),
       isA<InMemoryCategoryLocalDataSource>(),
+    );
+    expect(
+      serviceLocator<BudgetLocalDataSource>(),
+      isA<InMemoryBudgetLocalDataSource>(),
     );
     final categories = await serviceLocator<CategoryRepository>().getCategories(
       includeHidden: true,

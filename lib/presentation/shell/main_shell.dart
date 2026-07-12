@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../l10n/generated/app_localizations.dart';
+import '../cubits/settings/app_settings_cubit.dart';
 import '../cubits/transactions/transactions_cubit.dart';
 import '../widgets/transactions/add_transaction_sheet.dart';
 
@@ -23,7 +24,35 @@ class MainShell extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.appName)),
+      appBar: AppBar(
+        title: Text(l10n.appName),
+        actions: [
+          BlocBuilder<AppSettingsCubit, AppSettingsState>(
+            buildWhen: (previous, current) =>
+                previous.hideFinancialAmounts != current.hideFinancialAmounts ||
+                previous.revealFinancialAmounts !=
+                    current.revealFinancialAmounts,
+            builder: (context, settings) {
+              if (!settings.hideFinancialAmounts) {
+                return const SizedBox.shrink();
+              }
+              return IconButton(
+                tooltip: settings.revealFinancialAmounts
+                    ? l10n.hideAmountsTooltip
+                    : l10n.showAmountsTooltip,
+                onPressed: context
+                    .read<AppSettingsCubit>()
+                    .toggleFinancialAmountReveal,
+                icon: Icon(
+                  settings.revealFinancialAmounts
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
+                ),
+              );
+            },
+          ),
+        ],
+      ),
       body: navigationShell,
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {

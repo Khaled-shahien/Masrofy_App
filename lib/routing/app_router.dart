@@ -2,7 +2,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 import '../di/service_locator.dart';
+import '../presentation/cubits/budgets/budgets_cubit.dart';
 import '../presentation/cubits/categories/categories_cubit.dart';
+import '../presentation/cubits/reports/reports_cubit.dart';
 import '../presentation/cubits/wallets/wallet_balances_cubit.dart';
 import '../presentation/screens/budgets/budgets_screen.dart';
 import '../presentation/screens/dashboard/dashboard_screen.dart';
@@ -57,7 +59,10 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: AppRoutes.reports,
-                builder: (context, state) => const ReportsScreen(),
+                builder: (context, state) => BlocProvider(
+                  create: (context) => serviceLocator<ReportsCubit>()..load(),
+                  child: const ReportsScreen(),
+                ),
               ),
             ],
           ),
@@ -65,7 +70,10 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: AppRoutes.budgets,
-                builder: (context, state) => const BudgetsScreen(),
+                builder: (context, state) => BlocProvider(
+                  create: (context) => serviceLocator<BudgetsCubit>()..load(),
+                  child: const BudgetsScreen(),
+                ),
               ),
             ],
           ),

@@ -33,8 +33,26 @@ abstract class CategoryModel with _$CategoryModel {
   const CategoryModel._();
 
   /// Decodes a category while applying defaults for older stored records.
-  factory CategoryModel.fromJson(Map<String, dynamic> json) =>
-      _$CategoryModelFromJson(_normalizeLegacyJson(json));
+  factory CategoryModel.fromJson(Map<String, dynamic> json) {
+    final normalized = _normalizeLegacyJson(json);
+    final model = _$CategoryModelFromJson(normalized);
+
+    if (model.id.isEmpty || model.name.isEmpty) {
+      throw const FormatException('Invalid or missing category identity.');
+    }
+    _validateEnumValue(normalized['type'], TransactionType.values, 'type');
+    _validateNullableEnumValue(
+      normalized['defaultWallet'],
+      WalletType.values,
+      'defaultWallet',
+    );
+    _validateEnumValue(
+      normalized['behavior'],
+      CategoryBehavior.values,
+      'behavior',
+    );
+    return model;
+  }
 
   /// Creates a storage record from a domain category.
   factory CategoryModel.fromDomain(Category category) {
@@ -77,4 +95,42 @@ Map<String, dynamic> _normalizeLegacyJson(Map<String, dynamic> json) {
     'isHidden': json['isHidden'] ?? json['is_hidden'] ?? false,
     'defaultWallet': json['defaultWallet'] ?? json['default_wallet'],
   };
+}
+
+void _validateEnumValue<T extends Enum>(
+  Object? value,
+  List<T> values,
+  String fieldName,
+) {
+  if (value == null) {
+    return;
+  }
+
+  if (value is! String) {
+    throw FormatException('Invalid enum value for $fieldName.');
+  }
+
+  final valid = values.any((enumValue) => enumValue.name == value);
+  if (!valid) {
+    throw FormatException('Invalid enum value for $fieldName.');
+  }
+}
+
+void _validateNullableEnumValue<T extends Enum>(
+  Object? value,
+  List<T> values,
+  String fieldName,
+) {
+  if (value == null) {
+    return;
+  }
+
+  if (value is! String) {
+    throw FormatException('Invalid enum value for $fieldName.');
+  }
+
+  final valid = values.any((enumValue) => enumValue.name == value);
+  if (!valid) {
+    throw FormatException('Invalid enum value for $fieldName.');
+  }
 }

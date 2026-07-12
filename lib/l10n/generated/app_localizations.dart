@@ -182,6 +182,204 @@ abstract class AppLocalizations {
   /// **'ستظهر الميزانيات الشهرية لكل تصنيف هنا.'**
   String get budgetsEmptyBody;
 
+  /// No description provided for @budget.
+  ///
+  /// In ar, this message translates to:
+  /// **'الميزانية'**
+  String get budget;
+
+  /// No description provided for @addBudget.
+  ///
+  /// In ar, this message translates to:
+  /// **'إضافة ميزانية'**
+  String get addBudget;
+
+  /// No description provided for @editBudget.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعديل الميزانية'**
+  String get editBudget;
+
+  /// No description provided for @deleteBudget.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف الميزانية'**
+  String get deleteBudget;
+
+  /// No description provided for @monthlyBudget.
+  ///
+  /// In ar, this message translates to:
+  /// **'ميزانية شهرية'**
+  String get monthlyBudget;
+
+  /// No description provided for @budgetMonthLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'{month}'**
+  String budgetMonthLabel(Object month);
+
+  /// No description provided for @budgetPreviousMonth.
+  ///
+  /// In ar, this message translates to:
+  /// **'الشهر السابق'**
+  String get budgetPreviousMonth;
+
+  /// No description provided for @budgetNextMonth.
+  ///
+  /// In ar, this message translates to:
+  /// **'الشهر التالي'**
+  String get budgetNextMonth;
+
+  /// No description provided for @budgetCategoryLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'التصنيف'**
+  String get budgetCategoryLabel;
+
+  /// No description provided for @budgetCategoryRequired.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر التصنيف'**
+  String get budgetCategoryRequired;
+
+  /// No description provided for @budgetAmountLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'مبلغ الميزانية'**
+  String get budgetAmountLabel;
+
+  /// No description provided for @budgetAmountRequired.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل مبلغ ميزانية أكبر من صفر'**
+  String get budgetAmountRequired;
+
+  /// No description provided for @budgetNoteLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملاحظة'**
+  String get budgetNoteLabel;
+
+  /// No description provided for @budgetSpent.
+  ///
+  /// In ar, this message translates to:
+  /// **'المصروف'**
+  String get budgetSpent;
+
+  /// No description provided for @budgetRemaining.
+  ///
+  /// In ar, this message translates to:
+  /// **'المتبقي'**
+  String get budgetRemaining;
+
+  /// No description provided for @budgetExceeded.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تجاوز الميزانية'**
+  String get budgetExceeded;
+
+  /// No description provided for @budgetApproachingLimit.
+  ///
+  /// In ar, this message translates to:
+  /// **'قريب من الحد'**
+  String get budgetApproachingLimit;
+
+  /// No description provided for @budgetSafe.
+  ///
+  /// In ar, this message translates to:
+  /// **'ضمن الحد'**
+  String get budgetSafe;
+
+  /// No description provided for @budgetSavedMessage.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم حفظ الميزانية'**
+  String get budgetSavedMessage;
+
+  /// No description provided for @budgetDeletedMessage.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم حذف الميزانية'**
+  String get budgetDeletedMessage;
+
+  /// No description provided for @budgetsLoadError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر تحميل الميزانيات'**
+  String get budgetsLoadError;
+
+  /// No description provided for @budgetsLoadErrorBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر تحديث بيانات الميزانيات. حاول مرة أخرى.'**
+  String get budgetsLoadErrorBody;
+
+  /// No description provided for @budgetDuplicateValidation.
+  ///
+  /// In ar, this message translates to:
+  /// **'يوجد ميزانية لهذا التصنيف في الشهر المحدد بالفعل'**
+  String get budgetDuplicateValidation;
+
+  /// No description provided for @budgetExpenseCategoryValidation.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر تصنيف مصروف متاح'**
+  String get budgetExpenseCategoryValidation;
+
+  /// No description provided for @budgetNoExpenseCategories.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد تصنيفات مصروفات متاحة'**
+  String get budgetNoExpenseCategories;
+
+  /// No description provided for @budgetHiddenCategory.
+  ///
+  /// In ar, this message translates to:
+  /// **'تصنيف مخفي'**
+  String get budgetHiddenCategory;
+
+  /// No description provided for @budgetCategoryUnavailable.
+  ///
+  /// In ar, this message translates to:
+  /// **'تصنيف غير متاح'**
+  String get budgetCategoryUnavailable;
+
+  /// No description provided for @budgetDeleteConfirmation.
+  ///
+  /// In ar, this message translates to:
+  /// **'هل تريد حذف ميزانية {categoryName}؟'**
+  String budgetDeleteConfirmation(Object categoryName);
+
+  /// No description provided for @budgetProgressSemantics.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم استخدام {percentage}% من ميزانية {categoryName}'**
+  String budgetProgressSemantics(Object categoryName, Object percentage);
+
+  /// Startup loading title.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ تشغيل مصروفي'**
+  String get startupLoadingTitle;
+
+  /// Startup loading body.
+  ///
+  /// In ar, this message translates to:
+  /// **'يتم تجهيز بياناتك المحلية بأمان.'**
+  String get startupLoadingBody;
+
+  /// Startup failure title.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر بدء التطبيق'**
+  String get startupFailureTitle;
+
+  /// Startup failure body.
+  ///
+  /// In ar, this message translates to:
+  /// **'حدث خطأ أثناء إعداد البيانات المحلية. حاول مرة أخرى.'**
+  String get startupFailureBody;
+
   /// Settings screen title.
   ///
   /// In ar, this message translates to:
@@ -242,17 +440,35 @@ abstract class AppLocalizations {
   /// **'إضافة معاملة'**
   String get addTransactionTitle;
 
+  /// No description provided for @editTransactionTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعديل المعاملة'**
+  String get editTransactionTitle;
+
   /// No description provided for @saveTransaction.
   ///
   /// In ar, this message translates to:
   /// **'حفظ المعاملة'**
   String get saveTransaction;
 
+  /// No description provided for @updateTransaction.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحديث المعاملة'**
+  String get updateTransaction;
+
   /// No description provided for @transactionSavedMessage.
   ///
   /// In ar, this message translates to:
   /// **'تم حفظ المعاملة'**
   String get transactionSavedMessage;
+
+  /// No description provided for @transactionUpdatedMessage.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تحديث المعاملة'**
+  String get transactionUpdatedMessage;
 
   /// No description provided for @transactionTypeExpenseForm.
   ///
@@ -265,6 +481,12 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'دخل'**
   String get transactionTypeIncomeForm;
+
+  /// No description provided for @transactionTypeLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'النوع'**
+  String get transactionTypeLabel;
 
   /// No description provided for @transactionAmountLabel.
   ///
@@ -313,6 +535,114 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'حذف المعاملة'**
   String get transactionDeleteTooltip;
+
+  /// No description provided for @transactionEditTooltip.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعديل المعاملة'**
+  String get transactionEditTooltip;
+
+  /// No description provided for @transactionDetailsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تفاصيل المعاملة'**
+  String get transactionDetailsTitle;
+
+  /// No description provided for @transactionSearchLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'بحث في المعاملات'**
+  String get transactionSearchLabel;
+
+  /// No description provided for @transactionFiltersTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'الفلاتر'**
+  String get transactionFiltersTitle;
+
+  /// No description provided for @transactionAllTypes.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل الأنواع'**
+  String get transactionAllTypes;
+
+  /// No description provided for @transactionAllCategories.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل التصنيفات'**
+  String get transactionAllCategories;
+
+  /// No description provided for @transactionAllWallets.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل المحافظ'**
+  String get transactionAllWallets;
+
+  /// No description provided for @transactionClearFilters.
+  ///
+  /// In ar, this message translates to:
+  /// **'مسح الفلاتر'**
+  String get transactionClearFilters;
+
+  /// No description provided for @transactionDateRange.
+  ///
+  /// In ar, this message translates to:
+  /// **'نطاق التاريخ'**
+  String get transactionDateRange;
+
+  /// No description provided for @transactionMinAmount.
+  ///
+  /// In ar, this message translates to:
+  /// **'أقل مبلغ'**
+  String get transactionMinAmount;
+
+  /// No description provided for @transactionMaxAmount.
+  ///
+  /// In ar, this message translates to:
+  /// **'أكبر مبلغ'**
+  String get transactionMaxAmount;
+
+  /// No description provided for @transactionWithPersonName.
+  ///
+  /// In ar, this message translates to:
+  /// **'بها اسم شخص'**
+  String get transactionWithPersonName;
+
+  /// No description provided for @transactionWithNotes.
+  ///
+  /// In ar, this message translates to:
+  /// **'بها ملاحظات'**
+  String get transactionWithNotes;
+
+  /// No description provided for @transactionNoMatchesTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد معاملات مطابقة'**
+  String get transactionNoMatchesTitle;
+
+  /// No description provided for @transactionNoMatchesBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'عدّل البحث أو الفلاتر لعرض نتائج أكثر.'**
+  String get transactionNoMatchesBody;
+
+  /// No description provided for @transactionDateLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'التاريخ'**
+  String get transactionDateLabel;
+
+  /// No description provided for @transactionCreatedAtLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'تاريخ الإضافة'**
+  String get transactionCreatedAtLabel;
+
+  /// No description provided for @transactionUpdatedAtLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'آخر تحديث'**
+  String get transactionUpdatedAtLabel;
 
   /// No description provided for @unknownCategory.
   ///
@@ -404,11 +734,527 @@ abstract class AppLocalizations {
   /// **'إجمالي المصروفات {amount}'**
   String reportsTotalExpense(Object amount);
 
+  /// No description provided for @reportsTotalIncome.
+  ///
+  /// In ar, this message translates to:
+  /// **'إجمالي الدخل {amount}'**
+  String reportsTotalIncome(Object amount);
+
+  /// No description provided for @reportsNetBalance.
+  ///
+  /// In ar, this message translates to:
+  /// **'الصافي {amount}'**
+  String reportsNetBalance(Object amount);
+
+  /// No description provided for @reportsTransactionCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count} معاملة'**
+  String reportsTransactionCount(Object count);
+
+  /// No description provided for @reportsAverageDailyExpense.
+  ///
+  /// In ar, this message translates to:
+  /// **'متوسط اليوم {amount}'**
+  String reportsAverageDailyExpense(Object amount);
+
+  /// No description provided for @reportsHighestExpense.
+  ///
+  /// In ar, this message translates to:
+  /// **'أكبر مصروف {amount}'**
+  String reportsHighestExpense(Object amount);
+
+  /// No description provided for @reportsHighestCategory.
+  ///
+  /// In ar, this message translates to:
+  /// **'أعلى تصنيف {categoryName} · {amount}'**
+  String reportsHighestCategory(Object amount, Object categoryName);
+
+  /// No description provided for @reportsNoHighestExpense.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد معاملة مصروف'**
+  String get reportsNoHighestExpense;
+
+  /// No description provided for @reportsComparisonTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مقارنة بالفترة السابقة'**
+  String get reportsComparisonTitle;
+
+  /// No description provided for @reportsComparisonExpenseChange.
+  ///
+  /// In ar, this message translates to:
+  /// **'{amount} ({percentage}%)'**
+  String reportsComparisonExpenseChange(Object amount, Object percentage);
+
   /// No description provided for @reportsExpenseRatio.
   ///
   /// In ar, this message translates to:
   /// **'{percentage}% من المصروفات'**
   String reportsExpenseRatio(Object percentage);
+
+  /// No description provided for @reportsPeriodToday.
+  ///
+  /// In ar, this message translates to:
+  /// **'اليوم'**
+  String get reportsPeriodToday;
+
+  /// No description provided for @reportsPeriodThisWeek.
+  ///
+  /// In ar, this message translates to:
+  /// **'هذا الأسبوع'**
+  String get reportsPeriodThisWeek;
+
+  /// No description provided for @reportsPeriodThisMonth.
+  ///
+  /// In ar, this message translates to:
+  /// **'هذا الشهر'**
+  String get reportsPeriodThisMonth;
+
+  /// No description provided for @reportsPeriodPreviousMonth.
+  ///
+  /// In ar, this message translates to:
+  /// **'الشهر السابق'**
+  String get reportsPeriodPreviousMonth;
+
+  /// No description provided for @reportsPeriodCustom.
+  ///
+  /// In ar, this message translates to:
+  /// **'مخصص'**
+  String get reportsPeriodCustom;
+
+  /// No description provided for @reportsDateRange.
+  ///
+  /// In ar, this message translates to:
+  /// **'{startDate} - {endDate}'**
+  String reportsDateRange(Object endDate, Object startDate);
+
+  /// No description provided for @reportsFiltersTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'الفلاتر'**
+  String get reportsFiltersTitle;
+
+  /// No description provided for @reportsCategoryFilter.
+  ///
+  /// In ar, this message translates to:
+  /// **'التصنيف'**
+  String get reportsCategoryFilter;
+
+  /// No description provided for @reportsWalletFilter.
+  ///
+  /// In ar, this message translates to:
+  /// **'المحفظة'**
+  String get reportsWalletFilter;
+
+  /// No description provided for @reportsTypeFilter.
+  ///
+  /// In ar, this message translates to:
+  /// **'النوع'**
+  String get reportsTypeFilter;
+
+  /// No description provided for @reportsAllCategories.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل التصنيفات'**
+  String get reportsAllCategories;
+
+  /// No description provided for @reportsAllWallets.
+  ///
+  /// In ar, this message translates to:
+  /// **'كل المحافظ'**
+  String get reportsAllWallets;
+
+  /// No description provided for @reportsAllTypes.
+  ///
+  /// In ar, this message translates to:
+  /// **'الدخل والمصروفات'**
+  String get reportsAllTypes;
+
+  /// No description provided for @reportsClearFilters.
+  ///
+  /// In ar, this message translates to:
+  /// **'مسح الفلاتر'**
+  String get reportsClearFilters;
+
+  /// No description provided for @reportsCustomRangeAction.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختيار الفترة'**
+  String get reportsCustomRangeAction;
+
+  /// No description provided for @reportsDistributionTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'توزيع المصروفات'**
+  String get reportsDistributionTitle;
+
+  /// No description provided for @reportsTrendTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'الاتجاه عبر الوقت'**
+  String get reportsTrendTitle;
+
+  /// No description provided for @reportsIncomeVsExpenseTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'الدخل مقابل المصروفات'**
+  String get reportsIncomeVsExpenseTitle;
+
+  /// No description provided for @reportsNoChartData.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد بيانات رسم للفلاتر المحددة'**
+  String get reportsNoChartData;
+
+  /// No description provided for @reportsLoadError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر تحميل التقارير'**
+  String get reportsLoadError;
+
+  /// No description provided for @reportsExportMenu.
+  ///
+  /// In ar, this message translates to:
+  /// **'تصدير'**
+  String get reportsExportMenu;
+
+  /// No description provided for @exportReportPdf.
+  ///
+  /// In ar, this message translates to:
+  /// **'تصدير التقرير PDF'**
+  String get exportReportPdf;
+
+  /// No description provided for @exportTransactionsExcel.
+  ///
+  /// In ar, this message translates to:
+  /// **'تصدير المعاملات Excel'**
+  String get exportTransactionsExcel;
+
+  /// No description provided for @exportSavedMessage.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم حفظ التصدير في {path}'**
+  String exportSavedMessage(Object path);
+
+  /// No description provided for @exportFailedMessage.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر التصدير'**
+  String get exportFailedMessage;
+
+  /// No description provided for @settingsDataManagementTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إدارة البيانات'**
+  String get settingsDataManagementTitle;
+
+  /// No description provided for @settingsExportBackupTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تصدير نسخة احتياطية'**
+  String get settingsExportBackupTitle;
+
+  /// No description provided for @settingsExportBackupSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'احفظ نسخة JSON محلية لهذا الجهاز'**
+  String get settingsExportBackupSubtitle;
+
+  /// No description provided for @settingsImportBackupTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'استيراد نسخة احتياطية'**
+  String get settingsImportBackupTitle;
+
+  /// No description provided for @settingsImportBackupSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'استعد البيانات من ملف نسخة محلي'**
+  String get settingsImportBackupSubtitle;
+
+  /// No description provided for @settingsExportAllTransactionsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تصدير كل المعاملات'**
+  String get settingsExportAllTransactionsTitle;
+
+  /// No description provided for @settingsExportAllTransactionsSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'احفظ كل المعاملات في ملف Excel'**
+  String get settingsExportAllTransactionsSubtitle;
+
+  /// No description provided for @settingsExportCurrentReportTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تصدير تقرير الشهر الحالي'**
+  String get settingsExportCurrentReportTitle;
+
+  /// No description provided for @settingsExportCurrentReportSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'شارك ملخص PDF لهذا الشهر'**
+  String get settingsExportCurrentReportSubtitle;
+
+  /// No description provided for @settingsDeleteAllDataTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف كل البيانات المحلية'**
+  String get settingsDeleteAllDataTitle;
+
+  /// No description provided for @settingsDeleteAllDataSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مسح المعاملات والميزانيات والمحافظ وإعادة ضبط الإعدادات'**
+  String get settingsDeleteAllDataSubtitle;
+
+  /// No description provided for @settingsStoragePrivacyNote.
+  ///
+  /// In ar, this message translates to:
+  /// **'النسخ الاحتياطية تحت تحكمك. لا تتضمن مفاتيح التشفير أو PIN أو البيانات الحيوية أو سجلات التشخيص أو معرفات الجهاز.'**
+  String get settingsStoragePrivacyNote;
+
+  /// No description provided for @privacySecuritySectionTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'الخصوصية والأمان'**
+  String get privacySecuritySectionTitle;
+
+  /// No description provided for @hideFinancialAmountsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إخفاء المبالغ المالية'**
+  String get hideFinancialAmountsTitle;
+
+  /// No description provided for @hideFinancialAmountsSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إخفاء الأرصدة والإجماليات ومبالغ المعاملات حتى إظهارها'**
+  String get hideFinancialAmountsSubtitle;
+
+  /// No description provided for @showAmountsTooltip.
+  ///
+  /// In ar, this message translates to:
+  /// **'إظهار المبالغ'**
+  String get showAmountsTooltip;
+
+  /// No description provided for @hideAmountsTooltip.
+  ///
+  /// In ar, this message translates to:
+  /// **'إخفاء المبالغ'**
+  String get hideAmountsTooltip;
+
+  /// No description provided for @appLockEnableTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تفعيل قفل التطبيق'**
+  String get appLockEnableTitle;
+
+  /// No description provided for @appLockEnableSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'طلب PIN عند فتح مصروفي'**
+  String get appLockEnableSubtitle;
+
+  /// No description provided for @appLockChangePinTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تغيير PIN قفل التطبيق'**
+  String get appLockChangePinTitle;
+
+  /// No description provided for @appLockChangePinSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحقق من PIN الحالي قبل تغييره'**
+  String get appLockChangePinSubtitle;
+
+  /// No description provided for @appLockDisableTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعطيل قفل التطبيق'**
+  String get appLockDisableTitle;
+
+  /// No description provided for @appLockDisableSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحقق من PIN الحالي قبل تعطيل الحماية'**
+  String get appLockDisableSubtitle;
+
+  /// No description provided for @appLockPinLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'PIN'**
+  String get appLockPinLabel;
+
+  /// No description provided for @appLockCurrentPinLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'PIN الحالي'**
+  String get appLockCurrentPinLabel;
+
+  /// No description provided for @appLockConfirmPinLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكيد PIN'**
+  String get appLockConfirmPinLabel;
+
+  /// No description provided for @appLockPinHelper.
+  ///
+  /// In ar, this message translates to:
+  /// **'استخدم من 4 إلى 8 أرقام'**
+  String get appLockPinHelper;
+
+  /// No description provided for @appLockEnabledMessage.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تفعيل قفل التطبيق'**
+  String get appLockEnabledMessage;
+
+  /// No description provided for @appLockDisabledMessage.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تعطيل قفل التطبيق'**
+  String get appLockDisabledMessage;
+
+  /// No description provided for @appLockPinChangedMessage.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تغيير PIN'**
+  String get appLockPinChangedMessage;
+
+  /// No description provided for @appLockOperationFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر تعديل قفل التطبيق'**
+  String get appLockOperationFailed;
+
+  /// No description provided for @appLockUnlockTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مصروفي مقفل'**
+  String get appLockUnlockTitle;
+
+  /// No description provided for @appLockUnlockBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل PIN للمتابعة.'**
+  String get appLockUnlockBody;
+
+  /// No description provided for @appLockUnlockAction.
+  ///
+  /// In ar, this message translates to:
+  /// **'فتح'**
+  String get appLockUnlockAction;
+
+  /// No description provided for @appLockIncorrectPin.
+  ///
+  /// In ar, this message translates to:
+  /// **'PIN غير صحيح'**
+  String get appLockIncorrectPin;
+
+  /// No description provided for @appLockLockedOutMessage.
+  ///
+  /// In ar, this message translates to:
+  /// **'محاولات كثيرة جدًا. حاول لاحقًا.'**
+  String get appLockLockedOutMessage;
+
+  /// No description provided for @localPrivacyExplanation.
+  ///
+  /// In ar, this message translates to:
+  /// **'يحفظ مصروفي البيانات محليًا على هذا الجهاز ولا يحتوي حاليًا على مزامنة خلفية. النسخ الاحتياطية التي تنشئها تحت تحكمك. إزالة التطبيق قد تزيل البيانات المحلية إذا لم تكن هناك نسخة احتياطية، كما أن الوصول على مستوى الجهاز قد يؤثر على الخصوصية.'**
+  String get localPrivacyExplanation;
+
+  /// No description provided for @backupPathLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'مسار ملف النسخة الاحتياطية'**
+  String get backupPathLabel;
+
+  /// No description provided for @backupImportDialogTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'استيراد نسخة احتياطية'**
+  String get backupImportDialogTitle;
+
+  /// No description provided for @backupImportModeLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'طريقة الاستعادة'**
+  String get backupImportModeLabel;
+
+  /// No description provided for @backupImportMerge.
+  ///
+  /// In ar, this message translates to:
+  /// **'دمج'**
+  String get backupImportMerge;
+
+  /// No description provided for @backupImportReplace.
+  ///
+  /// In ar, this message translates to:
+  /// **'استبدال'**
+  String get backupImportReplace;
+
+  /// No description provided for @backupImportReplaceWarning.
+  ///
+  /// In ar, this message translates to:
+  /// **'الاستبدال يمسح البيانات المحلية الحالية بعد التحقق من النسخة. يتم إنشاء لقطة رجوع أولًا.'**
+  String get backupImportReplaceWarning;
+
+  /// No description provided for @backupImportAction.
+  ///
+  /// In ar, this message translates to:
+  /// **'استيراد'**
+  String get backupImportAction;
+
+  /// No description provided for @backupImportSuccess.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم استيراد النسخة الاحتياطية'**
+  String get backupImportSuccess;
+
+  /// No description provided for @backupImportFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر استيراد النسخة الاحتياطية'**
+  String get backupImportFailed;
+
+  /// No description provided for @deleteAllDataDialogTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف البيانات المحلية؟'**
+  String get deleteAllDataDialogTitle;
+
+  /// No description provided for @deleteAllDataDialogBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'سيتم مسح المعاملات والميزانيات وأرصدة المحافظ والإعدادات المحلية. ستتم استعادة التصنيفات الافتراضية المطلوبة.'**
+  String get deleteAllDataDialogBody;
+
+  /// No description provided for @deleteAllDataConfirmHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'اكتب DELETE للتأكيد'**
+  String get deleteAllDataConfirmHint;
+
+  /// No description provided for @deleteAllDataFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذر حذف البيانات المحلية'**
+  String get deleteAllDataFailed;
+
+  /// No description provided for @deleteAllDataSuccess.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم حذف البيانات المحلية'**
+  String get deleteAllDataSuccess;
+
+  /// No description provided for @commonConfirm.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكيد'**
+  String get commonConfirm;
 
   /// No description provided for @currencySymbol.
   ///
@@ -691,6 +1537,12 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'حفظ'**
   String get commonSave;
+
+  /// No description provided for @commonDelete.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف'**
+  String get commonDelete;
 
   /// Generic retry action.
   ///

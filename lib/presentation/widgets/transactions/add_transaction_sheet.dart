@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../domain/entities/category.dart';
+import '../../../domain/entities/financial_transaction.dart';
 import '../../../domain/entities/transaction_type.dart';
 import '../../../domain/entities/wallet_type.dart';
 import '../../../domain/usecases/transactions/save_transaction.dart';
@@ -13,7 +14,12 @@ import '../categories/category_visual_registry.dart';
 import 'transaction_formatters.dart';
 
 class AddTransactionSheet extends StatefulWidget {
-  const AddTransactionSheet({super.key});
+  const AddTransactionSheet({
+    this.initialTransaction,
+    super.key,
+  });
+
+  final FinancialTransaction? initialTransaction;
 
   @override
   State<AddTransactionSheet> createState() => _AddTransactionSheetState();
@@ -29,6 +35,24 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   String? _categoryId;
   WalletType? _wallet = WalletType.cash;
   DateTime _date = DateTime.now();
+
+  bool get _isEditing => widget.initialTransaction != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final transaction = widget.initialTransaction;
+    if (transaction == null) {
+      return;
+    }
+    _amountController.text = transaction.amount.toStringAsFixed(0);
+    _noteController.text = transaction.note ?? '';
+    _personController.text = transaction.personName ?? '';
+    _type = transaction.type;
+    _categoryId = transaction.categoryId;
+    _wallet = transaction.wallet ?? WalletType.cash;
+    _date = transaction.date;
+  }
 
   @override
   void dispose() {
@@ -52,7 +76,12 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       builder: (context, state) {
         final l10n = AppLocalizations.of(context);
         final categories = state.categories
-            .where((category) => category.type == _type)
+            .where(
+              (category) =>
+                  category.type == _type &&
+                  (!category.isHidden ||
+                      category.id == widget.initialTransaction?.categoryId),
+            )
             .toList(growable: false);
         if (_categoryId == null && categories.isNotEmpty) {
           _categoryId = categories.first.id;
@@ -75,7 +104,9 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      l10n.addTransactionTitle,
+                      _isEditing
+                          ? l10n.editTransactionTitle
+                          : l10n.addTransactionTitle,
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                     const SizedBox(height: 16),
@@ -205,7 +236,11 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
                           : const Icon(Icons.check),
-                      label: Text(l10n.saveTransaction),
+                      label: Text(
+                        _isEditing
+                            ? l10n.updateTransaction
+                            : l10n.saveTransaction,
+                      ),
                     ),
                   ],
                 ),
@@ -244,10 +279,12 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
     }
     final saved = await context.read<TransactionsCubit>().save(
       SaveTransactionInput(
+        id: widget.initialTransaction?.id,
         type: _type,
         amount: _parseAmount(_amountController.text)!,
         categoryId: _categoryId!,
         date: _date,
+        createdAt: widget.initialTransaction?.createdAt,
         note: _noteController.text,
         wallet: _wallet,
         personName: _personController.text,
@@ -257,7 +294,13 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
       final l10n = AppLocalizations.of(context);
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.transactionSavedMessage)),
+        SnackBar(
+          content: Text(
+            _isEditing
+                ? l10n.transactionUpdatedMessage
+                : l10n.transactionSavedMessage,
+          ),
+        ),
       );
     }
   }

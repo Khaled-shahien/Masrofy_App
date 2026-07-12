@@ -29,24 +29,30 @@ class FinancialTransactionModel {
   final DateTime updatedAt;
 
   factory FinancialTransactionModel.fromJson(Map<String, dynamic> json) {
+    final typeValue = json['type'];
+    final walletValue = json['wallet'];
+    final date = _requiredDate(json['date'], 'date');
+    final createdAt = _optionalDate(json['createdAt']) ?? date;
+    final updatedAt = _optionalDate(json['updatedAt']) ?? createdAt;
+
+    _validateNullableString(typeValue, 'type');
+    _validateNullableString(walletValue, 'wallet');
+
     return FinancialTransactionModel(
-      id: json['id'] as String? ?? '',
+      id: _requiredString(json, 'id'),
       type: _enumFromName(
         TransactionType.values,
-        json['type'] as String?,
+        typeValue as String?,
         TransactionType.expense,
       ),
-      amount: (json['amount'] as num? ?? 0).toDouble(),
-      categoryId: json['categoryId'] as String? ?? '',
-      date: _dateFromJson(json['date']) ?? DateTime.now(),
+      amount: _requiredDouble(json, 'amount'),
+      categoryId: _requiredString(json, 'categoryId'),
+      date: date,
       note: json['note'] as String?,
-      wallet: _nullableEnumFromName(
-        WalletType.values,
-        json['wallet'] as String?,
-      ),
+      wallet: _nullableEnumFromName(WalletType.values, walletValue as String?),
       personName: json['personName'] as String?,
-      createdAt: _dateFromJson(json['createdAt']) ?? DateTime.now(),
-      updatedAt: _dateFromJson(json['updatedAt']) ?? DateTime.now(),
+      createdAt: createdAt,
+      updatedAt: updatedAt,
     );
   }
 
@@ -98,22 +104,71 @@ class FinancialTransactionModel {
   }
 }
 
-DateTime? _dateFromJson(Object? value) {
+DateTime _requiredDate(Object? value, String fieldName) {
+  final parsed = _optionalDate(value);
+  if (parsed == null) {
+    throw FormatException('Invalid or missing $fieldName.');
+  }
+  return parsed;
+}
+
+DateTime? _optionalDate(Object? value) {
   if (value is! String) {
     return null;
   }
   return DateTime.tryParse(value);
 }
 
-T _enumFromName<T extends Enum>(List<T> values, String? name, T fallback) {
-  return _nullableEnumFromName(values, name) ?? fallback;
+double _requiredDouble(Map<String, dynamic> json, String fieldName) {
+  final value = json[fieldName];
+  if (value is num) {
+    return value.toDouble();
+  }
+  throw FormatException('Invalid or missing $fieldName.');
 }
 
-T? _nullableEnumFromName<T extends Enum>(List<T> values, String? name) {
+String _requiredString(Map<String, dynamic> json, String fieldName) {
+  final value = json[fieldName];
+  if (value is String && value.isNotEmpty) {
+    return value;
+  }
+  throw FormatException('Invalid or missing $fieldName.');
+}
+
+T _enumFromName<T extends Enum>(
+  List<T> values,
+  String? name,
+  T fallback,
+) {
+  if (name == null) {
+    return fallback;
+  }
+
   for (final value in values) {
     if (value.name == name) {
       return value;
     }
   }
-  return null;
+
+  throw FormatException('Invalid enum value for storage record.');
+}
+
+T? _nullableEnumFromName<T extends Enum>(List<T> values, String? name) {
+  if (name == null) {
+    return null;
+  }
+
+  for (final value in values) {
+    if (value.name == name) {
+      return value;
+    }
+  }
+
+  throw FormatException('Invalid enum value for storage record.');
+}
+
+void _validateNullableString(Object? value, String fieldName) {
+  if (value != null && value is! String) {
+    throw FormatException('Invalid enum value for $fieldName.');
+  }
 }

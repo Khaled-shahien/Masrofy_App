@@ -14,6 +14,8 @@ abstract interface class WalletBalanceLocalDataSource {
   Future<WalletBalanceModel?> getWalletBalance(WalletType walletType);
 
   Future<void> saveWalletBalance(WalletBalanceModel balance);
+
+  Future<void> replaceWalletBalances(Iterable<WalletBalanceModel> balances);
 }
 
 class HiveWalletBalanceLocalDataSource implements WalletBalanceLocalDataSource {
@@ -35,6 +37,17 @@ class HiveWalletBalanceLocalDataSource implements WalletBalanceLocalDataSource {
   @override
   Future<void> saveWalletBalance(WalletBalanceModel balance) {
     return _box.put(balance.walletType.name, jsonEncode(balance.toJson()));
+  }
+
+  @override
+  Future<void> replaceWalletBalances(
+    Iterable<WalletBalanceModel> balances,
+  ) async {
+    await _box.clear();
+    await _box.putAll(<String, String>{
+      for (final balance in balances)
+        balance.walletType.name: jsonEncode(balance.toJson()),
+    });
   }
 
   @override
@@ -76,6 +89,16 @@ class InMemoryWalletBalanceLocalDataSource
   @override
   Future<void> saveWalletBalance(WalletBalanceModel balance) async {
     _records[balance.walletType] = balance;
+    _changes.add(null);
+  }
+
+  @override
+  Future<void> replaceWalletBalances(
+    Iterable<WalletBalanceModel> balances,
+  ) async {
+    _records
+      ..clear()
+      ..addAll({for (final balance in balances) balance.walletType: balance});
     _changes.add(null);
   }
 

@@ -13,6 +13,10 @@ abstract interface class TransactionLocalDataSource {
   Future<void> saveTransaction(FinancialTransactionModel transaction);
 
   Future<void> deleteTransaction(String id);
+
+  Future<void> replaceTransactions(
+    Iterable<FinancialTransactionModel> transactions,
+  );
 }
 
 class HiveTransactionLocalDataSource implements TransactionLocalDataSource {
@@ -33,6 +37,17 @@ class HiveTransactionLocalDataSource implements TransactionLocalDataSource {
   @override
   Future<void> deleteTransaction(String id) {
     return _box.delete(id);
+  }
+
+  @override
+  Future<void> replaceTransactions(
+    Iterable<FinancialTransactionModel> transactions,
+  ) async {
+    await _box.clear();
+    await _box.putAll(<String, String>{
+      for (final transaction in transactions)
+        transaction.id: jsonEncode(transaction.toJson()),
+    });
   }
 
   @override
@@ -74,6 +89,18 @@ class InMemoryTransactionLocalDataSource implements TransactionLocalDataSource {
   @override
   Future<void> deleteTransaction(String id) async {
     _records.remove(id);
+    _changes.add(null);
+  }
+
+  @override
+  Future<void> replaceTransactions(
+    Iterable<FinancialTransactionModel> transactions,
+  ) async {
+    _records
+      ..clear()
+      ..addAll({
+        for (final transaction in transactions) transaction.id: transaction,
+      });
     _changes.add(null);
   }
 

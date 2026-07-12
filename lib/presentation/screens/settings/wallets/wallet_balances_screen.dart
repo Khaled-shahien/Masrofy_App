@@ -9,6 +9,7 @@ import '../../../cubits/wallets/wallet_balances_cubit.dart';
 import '../../../cubits/wallets/wallet_balances_state.dart';
 import '../../../widgets/categories/category_localization.dart';
 import '../../../widgets/loading_skeleton.dart';
+import '../../../widgets/privacy/financial_privacy.dart';
 import '../../../widgets/transactions/transaction_formatters.dart';
 
 class WalletBalancesScreen extends StatelessWidget {
@@ -134,15 +135,18 @@ class _WalletBalanceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
+    final obscureAmounts = financialAmountsObscured(context);
     final currentBalance = formatMoney(
       summary.currentBalance,
       localeName: localizations.localeName,
       currencySymbol: localizations.currencySymbol,
+      obscure: obscureAmounts,
     );
     final transactionNet = formatMoney(
       summary.transactionNet,
       localeName: localizations.localeName,
       currencySymbol: localizations.currencySymbol,
+      obscure: obscureAmounts,
     );
 
     return Card(

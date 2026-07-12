@@ -3,13 +3,15 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/app_design_tokens.dart';
 import '../../../core/theme/masrofy_theme_extension.dart';
-import '../../../domain/entities/financial_transaction.dart';
-import '../../../domain/entities/transaction_type.dart';
+import '../../../di/service_locator.dart';
+import '../../../domain/entities/dashboard_summary.dart';
+import '../../../domain/usecases/dashboard/build_dashboard_summary.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import '../../cubits/transactions/transactions_cubit.dart';
 import '../../cubits/transactions/transactions_state.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/loading_skeleton.dart';
+import '../../widgets/privacy/financial_privacy.dart';
 import '../../widgets/transactions/transaction_formatters.dart';
 import '../../widgets/transactions/transaction_list_tile.dart';
 
@@ -19,6 +21,7 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final obscureAmounts = financialAmountsObscured(context);
 
     return BlocBuilder<TransactionsCubit, TransactionsState>(
       builder: (context, state) {
@@ -33,18 +36,8 @@ class DashboardScreen extends StatelessWidget {
           );
         }
 
-        final now = DateTime.now();
-        final today = _sumFor(
+        final summary = serviceLocator<BuildDashboardSummary>()(
           state.transactions,
-          (transaction) => isSameDay(transaction.date, now),
-        );
-        final week = _sumFor(
-          state.transactions,
-          (transaction) => isInCurrentWeek(transaction.date, now),
-        );
-        final month = _sumFor(
-          state.transactions,
-          (transaction) => isSameMonth(transaction.date, now),
         );
         final categoriesById = {
           for (final category in state.categories) category.id: category,
@@ -74,9 +67,10 @@ class DashboardScreen extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: padding.left),
                   sliver: SliverToBoxAdapter(
                     child: _SummaryGrid(
-                      today: today,
-                      week: week,
-                      month: month,
+                      today: summary.today,
+                      week: summary.week,
+                      month: summary.month,
+                      obscureAmounts: obscureAmounts,
                     ),
                   ),
                 ),
@@ -135,11 +129,13 @@ class _SummaryGrid extends StatelessWidget {
     required this.today,
     required this.week,
     required this.month,
+    required this.obscureAmounts,
   });
 
-  final _Totals today;
-  final _Totals week;
-  final _Totals month;
+  final DashboardPeriodTotals today;
+  final DashboardPeriodTotals week;
+  final DashboardPeriodTotals month;
+  final bool obscureAmounts;
 
   @override
   Widget build(BuildContext context) {
@@ -148,9 +144,21 @@ class _SummaryGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final cards = [
-          _SummaryCard(title: l10n.summaryToday, totals: today),
-          _SummaryCard(title: l10n.summaryWeek, totals: week),
-          _SummaryCard(title: l10n.summaryMonth, totals: month),
+          _SummaryCard(
+            title: l10n.summaryToday,
+            totals: today,
+            obscureAmounts: obscureAmounts,
+          ),
+          _SummaryCard(
+            title: l10n.summaryWeek,
+            totals: week,
+            obscureAmounts: obscureAmounts,
+          ),
+          _SummaryCard(
+            title: l10n.summaryMonth,
+            totals: month,
+            obscureAmounts: obscureAmounts,
+          ),
         ];
         if (constraints.maxWidth >= AppBreakpoints.tablet) {
           return Row(
@@ -176,10 +184,15 @@ class _SummaryGrid extends StatelessWidget {
 }
 
 class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({required this.title, required this.totals});
+  const _SummaryCard({
+    required this.title,
+    required this.totals,
+    required this.obscureAmounts,
+  });
 
   final String title;
-  final _Totals totals;
+  final DashboardPeriodTotals totals;
+  final bool obscureAmounts;
 
   @override
   Widget build(BuildContext context) {
@@ -202,6 +215,7 @@ class _SummaryCard extends StatelessWidget {
                     label: l10n.summaryExpense,
                     value: totals.expense,
                     color: colors.expense,
+                    obscure: obscureAmounts,
                   ),
                 ),
                 Expanded(
@@ -209,6 +223,7 @@ class _SummaryCard extends StatelessWidget {
                     label: l10n.summaryIncome,
                     value: totals.income,
                     color: colors.income,
+                    obscure: obscureAmounts,
                   ),
                 ),
               ],
@@ -223,6 +238,7 @@ class _SummaryCard extends StatelessWidget {
                     totals.net,
                     localeName: l10n.localeName,
                     currencySymbol: l10n.currencySymbol,
+                    obscure: obscureAmounts,
                   ),
                 ),
                 style: textTheme.titleMedium?.copyWith(
@@ -242,11 +258,13 @@ class _AmountMetric extends StatelessWidget {
     required this.label,
     required this.value,
     required this.color,
+    required this.obscure,
   });
 
   final String label;
   final double value;
   final Color color;
+  final bool obscure;
 
   @override
   Widget build(BuildContext context) {
@@ -262,6 +280,7 @@ class _AmountMetric extends StatelessWidget {
             value,
             localeName: l10n.localeName,
             currencySymbol: l10n.currencySymbol,
+            obscure: obscure,
           ),
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
             color: color,
@@ -271,30 +290,4 @@ class _AmountMetric extends StatelessWidget {
       ],
     );
   }
-}
-
-class _Totals {
-  const _Totals({required this.income, required this.expense});
-
-  final double income;
-  final double expense;
-
-  double get net => income - expense;
-}
-
-_Totals _sumFor(
-  Iterable<FinancialTransaction> transactions,
-  bool Function(FinancialTransaction transaction) test,
-) {
-  var income = 0.0;
-  var expense = 0.0;
-  for (final transaction in transactions.where(test)) {
-    switch (transaction.type) {
-      case TransactionType.income:
-        income += transaction.amount;
-      case TransactionType.expense:
-        expense += transaction.amount;
-    }
-  }
-  return _Totals(income: income, expense: expense);
 }

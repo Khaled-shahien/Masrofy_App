@@ -14,14 +14,19 @@ class WalletBalanceModel {
   final DateTime updatedAt;
 
   factory WalletBalanceModel.fromJson(Map<String, dynamic> json) {
+    final walletTypeValue = json['walletType'];
+    final updatedAt = _requiredDate(json['updatedAt'], 'updatedAt');
+
+    _validateNullableString(walletTypeValue, 'walletType');
+
     return WalletBalanceModel(
       walletType: _enumFromName(
         WalletType.values,
-        json['walletType'] as String?,
+        walletTypeValue as String?,
         WalletType.cash,
       ),
-      baseBalance: (json['baseBalance'] as num? ?? 0).toDouble(),
-      updatedAt: _dateFromJson(json['updatedAt']) ?? DateTime.now(),
+      baseBalance: _requiredDouble(json, 'baseBalance'),
+      updatedAt: updatedAt,
     );
   }
 
@@ -50,18 +55,43 @@ class WalletBalanceModel {
   }
 }
 
-DateTime? _dateFromJson(Object? value) {
+DateTime _requiredDate(Object? value, String fieldName) {
   if (value is! String) {
-    return null;
+    throw FormatException('Invalid or missing $fieldName.');
   }
-  return DateTime.tryParse(value);
+
+  final parsed = DateTime.tryParse(value);
+  if (parsed == null) {
+    throw FormatException('Invalid or missing $fieldName.');
+  }
+  return parsed;
+}
+
+double _requiredDouble(Map<String, dynamic> json, String fieldName) {
+  final value = json[fieldName];
+  if (value is num) {
+    return value.toDouble();
+  }
+
+  throw FormatException('Invalid or missing $fieldName.');
 }
 
 T _enumFromName<T extends Enum>(List<T> values, String? name, T fallback) {
+  if (name == null) {
+    return fallback;
+  }
+
   for (final value in values) {
     if (value.name == name) {
       return value;
     }
   }
-  return fallback;
+
+  throw FormatException('Invalid enum value for storage record.');
+}
+
+void _validateNullableString(Object? value, String fieldName) {
+  if (value != null && value is! String) {
+    throw FormatException('Invalid enum value for $fieldName.');
+  }
 }

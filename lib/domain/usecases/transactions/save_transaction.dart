@@ -11,15 +11,19 @@ class SaveTransactionInput {
     required this.amount,
     required this.categoryId,
     required this.date,
+    this.id,
+    this.createdAt,
     this.note,
     this.wallet,
     this.personName,
   });
 
+  final String? id;
   final TransactionType type;
   final double amount;
   final String categoryId;
   final DateTime date;
+  final DateTime? createdAt;
   final String? note;
   final WalletType? wallet;
   final String? personName;
@@ -60,7 +64,7 @@ class SaveTransaction {
     final now = _now();
     return _repository.saveTransaction(
       FinancialTransaction(
-        id: _generateId(),
+        id: input.id ?? _generateId(),
         type: input.type,
         amount: amount,
         categoryId: input.categoryId,
@@ -68,7 +72,7 @@ class SaveTransaction {
         note: _blankToNull(input.note),
         wallet: input.wallet,
         personName: _blankToNull(input.personName),
-        createdAt: now,
+        createdAt: input.createdAt ?? now,
         updatedAt: now,
       ),
     );

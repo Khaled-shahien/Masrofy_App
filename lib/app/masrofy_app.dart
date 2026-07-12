@@ -5,8 +5,10 @@ import 'package:go_router/go_router.dart';
 import '../core/theme/app_theme.dart';
 import '../di/service_locator.dart';
 import '../l10n/generated/app_localizations.dart';
+import '../presentation/cubits/security/app_lock_cubit.dart';
 import '../presentation/cubits/settings/app_settings_cubit.dart';
 import '../presentation/cubits/transactions/transactions_cubit.dart';
+import '../presentation/security/app_lock_gate.dart';
 
 class MasrofyApp extends StatelessWidget {
   const MasrofyApp({super.key});
@@ -18,6 +20,9 @@ class MasrofyApp extends StatelessWidget {
     return MultiBlocProvider(
       providers: [
         BlocProvider.value(value: serviceLocator<AppSettingsCubit>()),
+        BlocProvider(
+          create: (context) => serviceLocator<AppLockCubit>()..load(),
+        ),
         BlocProvider(
           create: (context) => serviceLocator<TransactionsCubit>()..load(),
         ),
@@ -34,6 +39,9 @@ class MasrofyApp extends StatelessWidget {
             theme: AppTheme.light(),
             darkTheme: AppTheme.dark(),
             themeMode: settings.themeMode,
+            builder: (context, child) {
+              return AppLockGate(child: child ?? const SizedBox.shrink());
+            },
           );
         },
       ),

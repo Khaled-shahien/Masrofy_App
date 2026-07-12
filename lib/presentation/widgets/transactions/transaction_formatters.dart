@@ -3,11 +3,17 @@ import 'package:intl/intl.dart';
 import '../../../domain/entities/financial_transaction.dart';
 import '../../../domain/entities/transaction_type.dart';
 
+const maskedAmountText = '••••';
+
 String formatMoney(
   num value, {
   String localeName = 'ar',
   String currencySymbol = 'ج.م',
+  bool obscure = false,
 }) {
+  if (obscure) {
+    return maskedAmountText;
+  }
   return NumberFormat.currency(
     locale: _intlLocale(localeName),
     symbol: currencySymbol,
@@ -19,12 +25,14 @@ String formatTransactionAmount(
   FinancialTransaction transaction, {
   String localeName = 'ar',
   String currencySymbol = 'ج.م',
+  bool obscure = false,
 }) {
   final sign = transaction.type == TransactionType.expense ? '-' : '+';
   final amount = formatMoney(
     transaction.amount,
     localeName: localeName,
     currencySymbol: currencySymbol,
+    obscure: obscure,
   );
   return '$sign $amount';
 }
