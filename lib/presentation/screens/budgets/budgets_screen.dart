@@ -98,7 +98,18 @@ class _BudgetsBody extends StatelessWidget {
                     ),
                   ),
                 )
-              else
+              else ...[
+                SliverPadding(
+                  padding: EdgeInsets.fromLTRB(
+                    padding.left,
+                    AppSpacing.sm,
+                    padding.right,
+                    0,
+                  ),
+                  sliver: SliverToBoxAdapter(
+                    child: _BudgetSummaryCard(progress: state.progress),
+                  ),
+                ),
                 SliverPadding(
                   padding: EdgeInsets.fromLTRB(
                     padding.left,
@@ -120,10 +131,96 @@ class _BudgetsBody extends StatelessWidget {
                     },
                   ),
                 ),
+              ],
             ],
           ),
         );
       },
+    );
+  }
+}
+
+class _BudgetSummaryCard extends StatelessWidget {
+  const _BudgetSummaryCard({required this.progress});
+
+  final List<BudgetProgress> progress;
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+    final colors = Theme.of(context).extension<MasrofyThemeExtension>()!;
+    final obscureAmounts = financialAmountsObscured(context);
+    final totalBudget = progress.fold<double>(
+      0,
+      (sum, item) => sum + item.budget.amount,
+    );
+    final totalSpent = progress.fold<double>(
+      0,
+      (sum, item) => sum + item.spentAmount,
+    );
+    final totalRemaining = totalBudget - totalSpent;
+    final ratio = totalBudget <= 0 ? 0.0 : (totalSpent / totalBudget);
+    final statusColor = ratio >= 1
+        ? colors.budgetExceeded
+        : ratio >= 0.8
+        ? colors.budgetWarning
+        : colors.budgetSafe;
+
+    return Card(
+      color: colorScheme.secondaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              localizations.monthlyBudget,
+              style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                color: colorScheme.onSecondaryContainer,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TweenAnimationBuilder<double>(
+              duration: AppDurations.standard,
+              curve: AppCurves.standard,
+              tween: Tween<double>(begin: 0, end: ratio.clamp(0, 1)),
+              builder: (context, value, child) {
+                return LinearProgressIndicator(
+                  value: value,
+                  minHeight: 10,
+                  color: statusColor,
+                  backgroundColor: colorScheme.surface.withValues(alpha: 0.5),
+                  borderRadius: AppRadii.pill,
+                );
+              },
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Wrap(
+              spacing: AppSpacing.lg,
+              runSpacing: AppSpacing.sm,
+              children: [
+                _BudgetAmount(
+                  label: localizations.budget,
+                  value: _money(localizations, totalBudget, obscureAmounts),
+                ),
+                _BudgetAmount(
+                  label: localizations.budgetSpent,
+                  value: _money(localizations, totalSpent, obscureAmounts),
+                ),
+                _BudgetAmount(
+                  label: localizations.budgetRemaining,
+                  value: _money(
+                    localizations,
+                    totalRemaining,
+                    obscureAmounts,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -295,12 +392,19 @@ class _BudgetCard extends StatelessWidget {
                 categoryName,
                 progress.progressPercentage,
               ),
-              child: LinearProgressIndicator(
-                value: ratio,
-                minHeight: 8,
-                color: statusColor,
-                backgroundColor: colorScheme.surfaceContainerHighest,
-                borderRadius: AppRadii.pill,
+              child: TweenAnimationBuilder<double>(
+                duration: AppDurations.standard,
+                curve: AppCurves.standard,
+                tween: Tween<double>(begin: 0, end: ratio),
+                builder: (context, value, child) {
+                  return LinearProgressIndicator(
+                    value: value,
+                    minHeight: 8,
+                    color: statusColor,
+                    backgroundColor: colorScheme.surfaceContainerHighest,
+                    borderRadius: AppRadii.pill,
+                  );
+                },
               ),
             ),
             const SizedBox(height: AppSpacing.sm),
@@ -689,10 +793,23 @@ String _statusLabel(AppLocalizations localizations, BudgetStatus status) {
 Color _statusColor(BuildContext context, BudgetStatus status) {
   final colors = Theme.of(context).extension<MasrofyThemeExtension>()!;
   return switch (status) {
-    BudgetStatus.safe => colors.success,
-    BudgetStatus.approaching => colors.warning,
-    BudgetStatus.exceeded => colors.danger,
+    BudgetStatus.safe => colors.budgetSafe,
+    BudgetStatus.approaching => colors.budgetWarning,
+    BudgetStatus.exceeded => colors.budgetExceeded,
   };
+}
+
+String _money(
+  AppLocalizations localizations,
+  double value,
+  bool obscureAmounts,
+) {
+  return formatMoney(
+    value,
+    localeName: localizations.localeName,
+    currencySymbol: localizations.currencySymbol,
+    obscure: obscureAmounts,
+  );
 }
 
 double? _parseAmount(String? value) {

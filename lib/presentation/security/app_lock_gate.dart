@@ -56,17 +56,24 @@ class _AppLockGateState extends State<AppLockGate> with WidgetsBindingObserver {
             body: Center(child: Icon(Icons.lock_outline, size: 48)),
           );
         }
-        if (state.isLocked) {
-          return _AppLockScreen(state: state);
-        }
-        return widget.child;
+        return AnimatedSwitcher(
+          duration: AppDurations.standard,
+          switchInCurve: AppCurves.standard,
+          switchOutCurve: AppCurves.standard,
+          child: state.isLocked
+              ? _AppLockScreen(key: const ValueKey('locked'), state: state)
+              : KeyedSubtree(
+                  key: const ValueKey('unlocked'),
+                  child: widget.child,
+                ),
+        );
       },
     );
   }
 }
 
 class _AppLockScreen extends StatefulWidget {
-  const _AppLockScreen({required this.state});
+  const _AppLockScreen({required this.state, super.key});
 
   final AppLockState state;
 
@@ -96,61 +103,81 @@ class _AppLockScreenState extends State<_AppLockScreen> {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 420),
-            child: Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Icon(
-                    Icons.lock_outline,
-                    size: 52,
-                    color: colorScheme.primary,
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  Text(
-                    l10n.appLockUnlockTitle,
-                    style: Theme.of(context).textTheme.headlineSmall,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppSpacing.xs),
-                  Text(
-                    l10n.appLockUnlockBody,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  TextField(
-                    key: const ValueKey('app-lock-pin-field'),
-                    controller: _pinController,
-                    enabled: !isLockedOut,
-                    autofocus: true,
-                    obscureText: true,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: l10n.appLockPinLabel,
-                      prefixIcon: const Icon(Icons.pin_outlined),
+            child: Card(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: colorScheme.primaryContainer,
+                        borderRadius: AppRadii.pill,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(AppSpacing.md),
+                        child: Icon(
+                          Icons.lock_outline,
+                          size: 52,
+                          color: colorScheme.onPrimaryContainer,
+                        ),
+                      ),
                     ),
-                    onSubmitted: (_) => _unlock(context),
-                  ),
-                  if (state.errorMessage != null || isLockedOut) ...[
-                    const SizedBox(height: AppSpacing.sm),
+                    const SizedBox(height: AppSpacing.md),
                     Text(
-                      isLockedOut
-                          ? l10n.appLockLockedOutMessage
-                          : l10n.appLockIncorrectPin,
-                      style: TextStyle(color: colorScheme.error),
+                      l10n.appLockUnlockTitle,
+                      style: Theme.of(context).textTheme.headlineSmall,
                       textAlign: TextAlign.center,
                     ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      l10n.appLockUnlockBody,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    TextField(
+                      key: const ValueKey('app-lock-pin-field'),
+                      controller: _pinController,
+                      enabled: !isLockedOut,
+                      autofocus: true,
+                      obscureText: true,
+                      textDirection: TextDirection.ltr,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: l10n.appLockPinLabel,
+                        prefixIcon: const Icon(Icons.pin_outlined),
+                      ),
+                      onSubmitted: (_) => _unlock(context),
+                    ),
+                    AnimatedSwitcher(
+                      duration: AppDurations.fast,
+                      child: state.errorMessage != null || isLockedOut
+                          ? Padding(
+                              key: ValueKey(isLockedOut),
+                              padding: const EdgeInsets.only(
+                                top: AppSpacing.sm,
+                              ),
+                              child: Text(
+                                isLockedOut
+                                    ? l10n.appLockLockedOutMessage
+                                    : l10n.appLockIncorrectPin,
+                                style: TextStyle(color: colorScheme.error),
+                                textAlign: TextAlign.center,
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    FilledButton.icon(
+                      key: const ValueKey('app-lock-unlock-button'),
+                      onPressed: isLockedOut ? null : () => _unlock(context),
+                      icon: const Icon(Icons.lock_open_outlined),
+                      label: Text(l10n.appLockUnlockAction),
+                    ),
                   ],
-                  const SizedBox(height: AppSpacing.md),
-                  FilledButton.icon(
-                    key: const ValueKey('app-lock-unlock-button'),
-                    onPressed: isLockedOut ? null : () => _unlock(context),
-                    icon: const Icon(Icons.lock_open_outlined),
-                    label: Text(l10n.appLockUnlockAction),
-                  ),
-                ],
+                ),
               ),
             ),
           ),

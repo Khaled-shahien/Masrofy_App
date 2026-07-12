@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_design_tokens.dart';
 import '../../../domain/entities/wallet_type.dart';
 import '../../../l10n/generated/app_localizations.dart';
 import 'category_localization.dart';
@@ -40,17 +41,17 @@ class CategoryCard extends StatelessWidget {
       key: ValueKey('category-card-$id'),
       clipBehavior: Clip.antiAlias,
       child: AnimatedOpacity(
-        duration: const Duration(milliseconds: 180),
+        duration: AppDurations.fast,
         opacity: isHidden ? 0.62 : 1,
         child: Padding(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(AppSpacing.sm),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   _CategoryIcon(icon: icon, color: color),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: _CategoryTitle(
                       name: name,
@@ -103,7 +104,7 @@ class _CategoryIcon extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.16),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: AppRadii.card,
       ),
       child: SizedBox.square(
         dimension: 44,
@@ -135,7 +136,7 @@ class _CategoryTitle extends StatelessWidget {
           style: textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
         ),
         if (isHidden) ...[
-          const SizedBox(height: 4),
+          const SizedBox(height: AppSpacing.xxs),
           Text(
             localizations.categoryHidden,
             style: textTheme.labelSmall?.copyWith(
@@ -194,15 +195,18 @@ class _WalletMenu extends StatelessWidget {
       child: DecoratedBox(
         decoration: BoxDecoration(
           color: colorScheme.surface,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: AppRadii.card,
         ),
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppSpacing.xs,
+            vertical: AppSpacing.xxs,
+          ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(Icons.account_balance_wallet_outlined, size: 18),
-              const SizedBox(width: 6),
+              const SizedBox(width: AppSpacing.xxs),
               Flexible(
                 child: Text(
                   walletName,
@@ -211,7 +215,7 @@ class _WalletMenu extends StatelessWidget {
                   style: Theme.of(context).textTheme.labelMedium,
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: AppSpacing.xxs),
               const Icon(Icons.arrow_drop_down, size: 18),
             ],
           ),

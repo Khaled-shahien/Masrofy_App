@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_design_tokens.dart';
+import '../../../../core/theme/masrofy_theme_extension.dart';
 import '../../../../domain/entities/wallet_balance_summary.dart';
 import '../../../../domain/entities/wallet_type.dart';
 import '../../../../l10n/generated/app_localizations.dart';
@@ -58,9 +59,8 @@ class _WalletBalancesBody extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final sidePadding = constraints.maxWidth > AppBreakpoints.tablet
-            ? (constraints.maxWidth - AppBreakpoints.tablet) / 2 + AppSpacing.md
-            : AppSpacing.md;
+        final padding = responsivePagePadding(constraints);
+        final sidePadding = padding.left;
 
         return RefreshIndicator(
           onRefresh: () async => context.read<WalletBalancesCubit>().load(),
@@ -100,7 +100,7 @@ class _WalletBalancesBody extends StatelessWidget {
                   sidePadding,
                   AppSpacing.sm,
                   sidePadding,
-                  AppSpacing.bottomNavigationClearance,
+                  padding.bottom,
                 ),
                 sliver: SliverList.separated(
                   itemCount: state.summaries.length,
@@ -135,6 +135,7 @@ class _WalletBalanceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     final colorScheme = Theme.of(context).colorScheme;
+    final walletColor = _walletColor(context, summary.walletType);
     final obscureAmounts = financialAmountsObscured(context);
     final currentBalance = formatMoney(
       summary.currentBalance,
@@ -157,8 +158,8 @@ class _WalletBalanceCard extends StatelessWidget {
             final header = Row(
               children: [
                 CircleAvatar(
-                  backgroundColor: colorScheme.primaryContainer,
-                  foregroundColor: colorScheme.onPrimaryContainer,
+                  backgroundColor: walletColor.withValues(alpha: 0.14),
+                  foregroundColor: walletColor,
                   child: Icon(_walletIcon(summary.walletType)),
                 ),
                 const SizedBox(width: AppSpacing.sm),
@@ -260,10 +261,12 @@ class _WalletBalanceAmount extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         AnimatedSwitcher(
-          duration: const Duration(milliseconds: 220),
+          duration: AppDurations.standard,
+          switchInCurve: AppCurves.standard,
           child: Text(
             currentBalance,
             key: ValueKey(currentBalance),
+            textDirection: TextDirection.ltr,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
               fontWeight: FontWeight.w800,
             ),
@@ -401,6 +404,15 @@ IconData _walletIcon(WalletType walletType) {
     WalletType.instaPay => Icons.account_balance_outlined,
     WalletType.vodafoneCash => Icons.phone_android_outlined,
     WalletType.cash => Icons.payments_outlined,
+  };
+}
+
+Color _walletColor(BuildContext context, WalletType walletType) {
+  final colors = Theme.of(context).extension<MasrofyThemeExtension>()!;
+  return switch (walletType) {
+    WalletType.instaPay => colors.info,
+    WalletType.vodafoneCash => colors.savings,
+    WalletType.cash => colors.warning,
   };
 }
 

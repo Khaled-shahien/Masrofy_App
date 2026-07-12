@@ -886,7 +886,10 @@ class _ChartCard extends StatelessWidget {
           children: [
             Text(title, style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: AppSpacing.md),
-            SizedBox(height: 220, child: child),
+            Semantics(
+              label: title,
+              child: SizedBox(height: 220, child: child),
+            ),
           ],
         ),
       ),

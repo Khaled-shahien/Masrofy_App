@@ -23,8 +23,8 @@ class _IconPicker extends StatelessWidget {
           physics: const NeverScrollableScrollPhysics(),
           gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
             maxCrossAxisExtent: 56,
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
+            mainAxisSpacing: AppSpacing.xs,
+            crossAxisSpacing: AppSpacing.xs,
           ),
           itemCount: categoryIconOptions.length,
           itemBuilder: (context, index) {
@@ -37,9 +37,9 @@ class _IconPicker extends StatelessWidget {
               child: InkWell(
                 key: ValueKey('category-icon-${option.key}'),
                 onTap: enabled ? () => onSelected(option.key) : null,
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: AppRadii.card,
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 150),
+                  duration: AppDurations.fast,
                   decoration: BoxDecoration(
                     color: isSelected
                         ? colorScheme.primaryContainer
@@ -50,7 +50,7 @@ class _IconPicker extends StatelessWidget {
                           : Colors.transparent,
                       width: 2,
                     ),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: AppRadii.card,
                   ),
                   child: Icon(option.icon),
                 ),
@@ -78,8 +78,8 @@ class _ColorPicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     return Wrap(
-      spacing: 10,
-      runSpacing: 10,
+      spacing: AppSpacing.xs,
+      runSpacing: AppSpacing.xs,
       children: [
         for (final (index, value) in categoryColorValues.indexed)
           Semantics(
@@ -113,7 +113,7 @@ class _ColorOption extends StatelessWidget {
         ? Colors.black
         : Colors.white;
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 150),
+      duration: AppDurations.fast,
       width: 44,
       height: 44,
       decoration: BoxDecoration(
@@ -146,8 +146,8 @@ class _WalletPicker extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     return Wrap(
-      spacing: 8,
-      runSpacing: 8,
+      spacing: AppSpacing.xs,
+      runSpacing: AppSpacing.xs,
       children: [
         ChoiceChip(
           key: const ValueKey('category-wallet-none'),

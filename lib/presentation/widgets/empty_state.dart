@@ -29,17 +29,38 @@ class EmptyState extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              DecoratedBox(
-                decoration: BoxDecoration(
-                  color: colorScheme.primaryContainer,
-                  borderRadius: AppRadii.pill,
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Icon(
-                    icon,
-                    size: AppIconSizes.empty,
-                    color: colorScheme.onPrimaryContainer,
+              Semantics(
+                image: true,
+                label: title,
+                child: SizedBox.square(
+                  dimension: 88,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: colorScheme.primaryContainer,
+                          borderRadius: AppRadii.pill,
+                        ),
+                        child: const SizedBox.square(dimension: 72),
+                      ),
+                      PositionedDirectional(
+                        top: AppSpacing.xs,
+                        end: AppSpacing.xs,
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: colorScheme.secondaryContainer,
+                            borderRadius: AppRadii.pill,
+                          ),
+                          child: const SizedBox.square(dimension: 22),
+                        ),
+                      ),
+                      Icon(
+                        icon,
+                        size: AppIconSizes.empty,
+                        color: colorScheme.onPrimaryContainer,
+                      ),
+                    ],
                   ),
                 ),
               ),

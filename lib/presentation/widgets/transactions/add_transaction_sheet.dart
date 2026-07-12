@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../core/theme/app_design_tokens.dart';
 import '../../../domain/entities/category.dart';
 import '../../../domain/entities/financial_transaction.dart';
 import '../../../domain/entities/transaction_type.dart';
@@ -89,153 +90,194 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
         final selectedCategory = _selectedCategory(categories);
 
         return SafeArea(
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-              bottom: MediaQuery.viewInsetsOf(context).bottom + 16,
-              top: 16,
+          child: AnimatedPadding(
+            duration: AppDurations.fast,
+            curve: AppCurves.standard,
+            padding: EdgeInsetsDirectional.only(
+              start: AppSpacing.md,
+              end: AppSpacing.md,
+              top: AppSpacing.xs,
+              bottom: MediaQuery.viewInsetsOf(context).bottom + AppSpacing.md,
             ),
             child: Form(
               key: _formKey,
-              child: SingleChildScrollView(
+              autovalidateMode: AutovalidateMode.onUserInteraction,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: MediaQuery.sizeOf(context).height * 0.86,
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text(
-                      _isEditing
-                          ? l10n.editTransactionTitle
-                          : l10n.addTransactionTitle,
-                      style: Theme.of(context).textTheme.headlineSmall,
-                    ),
-                    const SizedBox(height: 16),
-                    SegmentedButton<TransactionType>(
-                      segments: [
-                        ButtonSegment(
-                          value: TransactionType.expense,
-                          icon: const Icon(Icons.arrow_downward),
-                          label: Text(l10n.transactionTypeExpenseForm),
-                        ),
-                        ButtonSegment(
-                          value: TransactionType.income,
-                          icon: const Icon(Icons.arrow_upward),
-                          label: Text(l10n.transactionTypeIncomeForm),
-                        ),
-                      ],
-                      selected: {_type},
-                      onSelectionChanged: (selection) {
-                        setState(() {
-                          _type = selection.first;
-                          _categoryId = null;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      key: const ValueKey('transaction_amount_field'),
-                      controller: _amountController,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      decoration: const InputDecoration(
-                        prefixIcon: Icon(Icons.payments_outlined),
-                        border: OutlineInputBorder(),
-                      ).copyWith(labelText: l10n.transactionAmountLabel),
-                      validator: (value) {
-                        final amount = _parseAmount(value);
-                        if (amount == null || amount <= 0) {
-                          return l10n.transactionAmountRequired;
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      key: const ValueKey('transaction_category_field'),
-                      initialValue:
-                          categories.any(
-                            (category) => category.id == _categoryId,
-                          )
-                          ? _categoryId
-                          : null,
-                      decoration: const InputDecoration(
-                        prefixIcon: Icon(Icons.category_outlined),
-                        border: OutlineInputBorder(),
-                      ).copyWith(labelText: l10n.transactionCategoryLabel),
-                      items: [
-                        for (final category in categories)
-                          DropdownMenuItem(
-                            value: category.id,
-                            child: _CategoryOption(category: category),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _isEditing
+                                ? l10n.editTransactionTitle
+                                : l10n.addTransactionTitle,
+                            style: Theme.of(context).textTheme.headlineSmall
+                                ?.copyWith(fontWeight: FontWeight.w800),
                           ),
-                      ],
-                      onChanged: (value) => setState(() => _categoryId = value),
-                      validator: (value) => value == null
-                          ? l10n.transactionCategoryRequired
-                          : null,
-                    ),
-                    if (selectedCategory?.behavior ==
-                        CategoryBehavior.personTransfer) ...[
-                      const SizedBox(height: 16),
-                      TextFormField(
-                        controller: _personController,
-                        decoration: const InputDecoration(
-                          prefixIcon: Icon(Icons.person_outline),
-                          border: OutlineInputBorder(),
-                        ).copyWith(labelText: l10n.transactionPersonLabel),
-                      ),
-                    ],
-                    const SizedBox(height: 16),
-                    DropdownButtonFormField<WalletType>(
-                      initialValue: _wallet,
-                      decoration: const InputDecoration(
-                        prefixIcon: Icon(Icons.account_balance_wallet_outlined),
-                        border: OutlineInputBorder(),
-                      ).copyWith(labelText: l10n.transactionWalletLabel),
-                      items: [
-                        DropdownMenuItem(
-                          value: WalletType.cash,
-                          child: Text(l10n.walletCash),
                         ),
-                        DropdownMenuItem(
-                          value: WalletType.instaPay,
-                          child: Text(l10n.walletInstaPay),
-                        ),
-                        DropdownMenuItem(
-                          value: WalletType.vodafoneCash,
-                          child: Text(l10n.walletVodafoneCash),
+                        IconButton(
+                          tooltip: MaterialLocalizations.of(
+                            context,
+                          ).closeButtonTooltip,
+                          onPressed: () => Navigator.of(context).pop(),
+                          icon: const Icon(Icons.close),
                         ),
                       ],
-                      onChanged: (value) => setState(() => _wallet = value),
                     ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _noteController,
-                      decoration: const InputDecoration(
-                        prefixIcon: Icon(Icons.notes_outlined),
-                        border: OutlineInputBorder(),
-                      ).copyWith(labelText: l10n.transactionNoteLabel),
-                      maxLines: 2,
-                    ),
-                    const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      onPressed: _pickDate,
-                      icon: const Icon(Icons.calendar_month_outlined),
-                      label: Text(
-                        formatDay(_date, localeName: l10n.localeName),
+                    const SizedBox(height: AppSpacing.md),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            SegmentedButton<TransactionType>(
+                              segments: [
+                                ButtonSegment(
+                                  value: TransactionType.expense,
+                                  icon: const Icon(Icons.arrow_downward),
+                                  label: Text(
+                                    l10n.transactionTypeExpenseForm,
+                                  ),
+                                ),
+                                ButtonSegment(
+                                  value: TransactionType.income,
+                                  icon: const Icon(Icons.arrow_upward),
+                                  label: Text(l10n.transactionTypeIncomeForm),
+                                ),
+                              ],
+                              selected: {_type},
+                              onSelectionChanged: (selection) {
+                                setState(() {
+                                  _type = selection.first;
+                                  _categoryId = null;
+                                });
+                              },
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            TextFormField(
+                              key: const ValueKey('transaction_amount_field'),
+                              controller: _amountController,
+                              textDirection: TextDirection.ltr,
+                              style: Theme.of(context).textTheme.headlineSmall
+                                  ?.copyWith(fontWeight: FontWeight.w800),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: InputDecoration(
+                                prefixIcon: const Icon(Icons.payments_outlined),
+                                suffixText: l10n.currencySymbol,
+                                labelText: l10n.transactionAmountLabel,
+                              ),
+                              validator: (value) {
+                                final amount = _parseAmount(value);
+                                if (amount == null || amount <= 0) {
+                                  return l10n.transactionAmountRequired;
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            DropdownButtonFormField<String>(
+                              key: const ValueKey(
+                                'transaction_category_field',
+                              ),
+                              initialValue:
+                                  categories.any(
+                                    (category) => category.id == _categoryId,
+                                  )
+                                  ? _categoryId
+                                  : null,
+                              decoration: InputDecoration(
+                                prefixIcon: const Icon(
+                                  Icons.category_outlined,
+                                ),
+                                labelText: l10n.transactionCategoryLabel,
+                              ),
+                              items: [
+                                for (final category in categories)
+                                  DropdownMenuItem(
+                                    value: category.id,
+                                    child: _CategoryOption(category: category),
+                                  ),
+                              ],
+                              onChanged: (value) =>
+                                  setState(() => _categoryId = value),
+                              validator: (value) => value == null
+                                  ? l10n.transactionCategoryRequired
+                                  : null,
+                            ),
+                            if (selectedCategory?.behavior ==
+                                CategoryBehavior.personTransfer) ...[
+                              const SizedBox(height: AppSpacing.md),
+                              AnimatedSwitcher(
+                                duration: AppDurations.standard,
+                                child: TextFormField(
+                                  key: const ValueKey(
+                                    'transaction-person-field',
+                                  ),
+                                  controller: _personController,
+                                  decoration: InputDecoration(
+                                    prefixIcon: const Icon(
+                                      Icons.person_outline,
+                                    ),
+                                    labelText: l10n.transactionPersonLabel,
+                                  ),
+                                ),
+                              ),
+                            ],
+                            const SizedBox(height: AppSpacing.md),
+                            _WalletChoiceGroup(
+                              selectedWallet: _wallet ?? WalletType.cash,
+                              onChanged: (value) =>
+                                  setState(() => _wallet = value),
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                            TextFormField(
+                              controller: _noteController,
+                              decoration: InputDecoration(
+                                prefixIcon: const Icon(Icons.notes_outlined),
+                                labelText: l10n.transactionNoteLabel,
+                              ),
+                              maxLines: 2,
+                            ),
+                            const SizedBox(height: AppSpacing.sm),
+                            OutlinedButton.icon(
+                              onPressed: _pickDate,
+                              icon: const Icon(Icons.calendar_month_outlined),
+                              label: Text(
+                                formatDay(
+                                  _date,
+                                  localeName: l10n.localeName,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: AppSpacing.sm),
                     FilledButton.icon(
                       key: const ValueKey('save_transaction_button'),
                       onPressed: state.isSaving ? null : _save,
-                      icon: state.isSaving
-                          ? const SizedBox.square(
-                              dimension: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : const Icon(Icons.check),
+                      icon: AnimatedSwitcher(
+                        duration: AppDurations.fast,
+                        child: state.isSaving
+                            ? const SizedBox.square(
+                                key: ValueKey('saving'),
+                                dimension: 18,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Icon(Icons.check, key: ValueKey('check')),
+                      ),
                       label: Text(
                         _isEditing
                             ? l10n.updateTransaction
@@ -327,6 +369,41 @@ class _CategoryOption extends StatelessWidget {
           overflow: TextOverflow.ellipsis,
         ),
       ],
+    );
+  }
+}
+
+class _WalletChoiceGroup extends StatelessWidget {
+  const _WalletChoiceGroup({
+    required this.selectedWallet,
+    required this.onChanged,
+  });
+
+  final WalletType selectedWallet;
+  final ValueChanged<WalletType> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    final wallets = WalletType.values;
+
+    return InputDecorator(
+      decoration: InputDecoration(
+        labelText: localizations.transactionWalletLabel,
+        prefixIcon: const Icon(Icons.account_balance_wallet_outlined),
+      ),
+      child: Wrap(
+        spacing: AppSpacing.xs,
+        runSpacing: AppSpacing.xs,
+        children: [
+          for (final wallet in wallets)
+            ChoiceChip(
+              label: Text(localizedWalletName(localizations, wallet)),
+              selected: selectedWallet == wallet,
+              onSelected: (_) => onChanged(wallet),
+            ),
+        ],
+      ),
     );
   }
 }

@@ -241,6 +241,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transactionDeleteTooltip => 'Delete transaction';
 
   @override
+  String get transactionDeleteConfirmation => 'Delete this transaction?';
+
+  @override
   String get transactionEditTooltip => 'Edit transaction';
 
   @override

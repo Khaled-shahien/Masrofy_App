@@ -6,6 +6,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' as intl;
 
 import '../../../core/theme/app_design_tokens.dart';
+import '../../../core/theme/masrofy_theme_extension.dart';
 import '../../../data/backup/backup_restore_service.dart';
 import '../../../data/export/data_export_service.dart';
 import '../../../di/service_locator.dart';
@@ -502,12 +503,13 @@ class _SettingsSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final colors = Theme.of(context).extension<MasrofyThemeExtension>()!;
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest,
+        color: colors.elevatedSurface,
         borderRadius: AppRadii.card,
+        border: Border.all(color: colors.cardBorder),
       ),
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.md),
@@ -540,16 +542,23 @@ class _SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
     return ListTile(
-      leading: Icon(icon),
+      leading: _SettingsIcon(icon: icon),
       title: Text(title),
       subtitle: subtitle == null ? null : Text(subtitle!),
       trailing: onTap == null ? null : Icon(_chevronIcon(context)),
       onTap: onTap,
-      tileColor: colorScheme.surfaceContainerHighest,
-      shape: RoundedRectangleBorder(borderRadius: AppRadii.card),
+      tileColor: Theme.of(
+        context,
+      ).extension<MasrofyThemeExtension>()!.elevatedSurface,
+      shape: RoundedRectangleBorder(
+        borderRadius: AppRadii.card,
+        side: BorderSide(
+          color: Theme.of(
+            context,
+          ).extension<MasrofyThemeExtension>()!.cardBorder,
+        ),
+      ),
     );
   }
 
@@ -579,11 +588,40 @@ class _SettingsActionTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListTile(
       contentPadding: EdgeInsets.zero,
-      leading: Icon(icon),
+      leading: _SettingsIcon(icon: icon),
       title: Text(title),
       subtitle: Text(subtitle),
-      trailing: const Icon(Icons.chevron_right),
+      trailing: Icon(_chevronIcon(context)),
       onTap: onTap,
+    );
+  }
+
+  IconData _chevronIcon(BuildContext context) {
+    return switch (Directionality.of(context)) {
+      TextDirection.rtl => Icons.chevron_left,
+      TextDirection.ltr => Icons.chevron_right,
+    };
+  }
+}
+
+class _SettingsIcon extends StatelessWidget {
+  const _SettingsIcon({required this.icon});
+
+  final IconData icon;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colorScheme.primaryContainer,
+        borderRadius: AppRadii.card,
+      ),
+      child: SizedBox.square(
+        dimension: 42,
+        child: Icon(icon, color: colorScheme.onPrimaryContainer),
+      ),
     );
   }
 }

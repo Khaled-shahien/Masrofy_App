@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
+import '../core/theme/app_design_tokens.dart';
 import '../di/service_locator.dart';
 import '../presentation/cubits/budgets/budgets_cubit.dart';
 import '../presentation/cubits/categories/categories_cubit.dart';
@@ -43,7 +45,10 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: AppRoutes.dashboard,
-                builder: (context, state) => const DashboardScreen(),
+                pageBuilder: (context, state) => _fadeThroughPage(
+                  state: state,
+                  child: const DashboardScreen(),
+                ),
               ),
             ],
           ),
@@ -51,7 +56,10 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: AppRoutes.history,
-                builder: (context, state) => const HistoryScreen(),
+                pageBuilder: (context, state) => _fadeThroughPage(
+                  state: state,
+                  child: const HistoryScreen(),
+                ),
               ),
             ],
           ),
@@ -59,9 +67,12 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: AppRoutes.reports,
-                builder: (context, state) => BlocProvider(
-                  create: (context) => serviceLocator<ReportsCubit>()..load(),
-                  child: const ReportsScreen(),
+                pageBuilder: (context, state) => _fadeThroughPage(
+                  state: state,
+                  child: BlocProvider(
+                    create: (context) => serviceLocator<ReportsCubit>()..load(),
+                    child: const ReportsScreen(),
+                  ),
                 ),
               ),
             ],
@@ -70,9 +81,12 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: AppRoutes.budgets,
-                builder: (context, state) => BlocProvider(
-                  create: (context) => serviceLocator<BudgetsCubit>()..load(),
-                  child: const BudgetsScreen(),
+                pageBuilder: (context, state) => _fadeThroughPage(
+                  state: state,
+                  child: BlocProvider(
+                    create: (context) => serviceLocator<BudgetsCubit>()..load(),
+                    child: const BudgetsScreen(),
+                  ),
                 ),
               ),
             ],
@@ -81,7 +95,10 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: AppRoutes.settings,
-                builder: (context, state) => const SettingsScreen(),
+                pageBuilder: (context, state) => _fadeThroughPage(
+                  state: state,
+                  child: const SettingsScreen(),
+                ),
               ),
             ],
           ),
@@ -89,19 +106,58 @@ class AppRouter {
       ),
       GoRoute(
         path: AppRoutes.categories,
-        builder: (context, state) => BlocProvider(
-          create: (context) => serviceLocator<CategoriesCubit>()..load(),
-          child: const CategoriesScreen(),
+        pageBuilder: (context, state) => _fadeThroughPage(
+          state: state,
+          child: BlocProvider(
+            create: (context) => serviceLocator<CategoriesCubit>()..load(),
+            child: const CategoriesScreen(),
+          ),
         ),
       ),
       GoRoute(
         path: AppRoutes.walletBalances,
-        builder: (context, state) => BlocProvider(
-          create: (context) => serviceLocator<WalletBalancesCubit>()..load(),
-          child: const WalletBalancesScreen(),
+        pageBuilder: (context, state) => _fadeThroughPage(
+          state: state,
+          child: BlocProvider(
+            create: (context) => serviceLocator<WalletBalancesCubit>()..load(),
+            child: const WalletBalancesScreen(),
+          ),
         ),
       ),
     ],
     errorBuilder: (context, state) => const NotFoundScreen(),
+  );
+}
+
+CustomTransitionPage<void> _fadeThroughPage({
+  required GoRouterState state,
+  required Widget child,
+}) {
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: AppDurations.standard,
+    reverseTransitionDuration: AppDurations.fast,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final reducedMotion = MediaQuery.disableAnimationsOf(context);
+      if (reducedMotion) {
+        return child;
+      }
+      final curvedAnimation = CurvedAnimation(
+        parent: animation,
+        curve: AppCurves.standard,
+        reverseCurve: AppCurves.emphasized,
+      );
+      return FadeTransition(
+        opacity: curvedAnimation,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 0.025),
+            end: Offset.zero,
+          ).animate(curvedAnimation),
+          child: child,
+        ),
+      );
+    },
   );
 }

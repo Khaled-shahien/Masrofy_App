@@ -136,6 +136,7 @@
   "transactionWalletLabel": "المحفظة",
   "transactionNoteLabel": "ملاحظة",
   "transactionDeleteTooltip": "حذف المعاملة",
+  "transactionDeleteConfirmation": "هل تريد حذف هذه المعاملة؟",
   "transactionEditTooltip": "تعديل المعاملة",
   "transactionDetailsTitle": "تفاصيل المعاملة",
   "transactionSearchLabel": "بحث في المعاملات",

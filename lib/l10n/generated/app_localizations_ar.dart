@@ -237,6 +237,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get transactionDeleteTooltip => 'حذف المعاملة';
 
   @override
+  String get transactionDeleteConfirmation => 'هل تريد حذف هذه المعاملة؟';
+
+  @override
   String get transactionEditTooltip => 'تعديل المعاملة';
 
   @override

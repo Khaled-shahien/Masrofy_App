@@ -16,9 +16,8 @@ class _CategoriesBody extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final sidePadding = constraints.maxWidth > 1040
-            ? (constraints.maxWidth - 1040) / 2 + 16
-            : 16.0;
+        final padding = responsivePagePadding(constraints);
+        final sidePadding = padding.left;
         return RefreshIndicator(
           onRefresh: context.read<CategoriesCubit>().load,
           child: CustomScrollView(
@@ -28,9 +27,9 @@ class _CategoriesBody extends StatelessWidget {
               SliverPadding(
                 padding: EdgeInsets.fromLTRB(
                   sidePadding,
-                  16,
+                  AppSpacing.md,
                   sidePadding,
-                  8,
+                  AppSpacing.xs,
                 ),
                 sliver: SliverToBoxAdapter(
                   child: _CategoriesHeader(state: state),
@@ -61,7 +60,7 @@ class _CategoriesBody extends StatelessWidget {
                       sidePadding,
                       0,
                       sidePadding,
-                      96,
+                      AppSpacing.bottomNavigationClearance,
                     ),
                     sliver: const SliverToBoxAdapter(
                       child: _NoCustomCategoriesCard(),
@@ -72,7 +71,7 @@ class _CategoriesBody extends StatelessWidget {
                     categories: customCategories,
                     horizontalPadding: sidePadding,
                     state: state,
-                    bottomPadding: 96,
+                    bottomPadding: AppSpacing.bottomNavigationClearance,
                   ),
               ],
             ],
@@ -100,7 +99,7 @@ class _CategoriesHeader extends StatelessWidget {
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: AppSpacing.md),
         SegmentedButton<TransactionType>(
           key: const ValueKey('category-type-segment'),
           expandedInsets: EdgeInsets.zero,
@@ -124,7 +123,7 @@ class _CategoriesHeader extends StatelessWidget {
                     context.read<CategoriesCubit>().selectType(selection.first),
         ),
         if (state.status == CategoriesStatus.loading || state.isSaving) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: AppSpacing.sm),
           const LinearProgressIndicator(minHeight: 2),
         ],
       ],
@@ -146,9 +145,9 @@ class _SectionHeadingSliver extends StatelessWidget {
     return SliverPadding(
       padding: EdgeInsets.fromLTRB(
         horizontalPadding,
-        16,
+        AppSpacing.md,
         horizontalPadding,
-        8,
+        AppSpacing.xs,
       ),
       sliver: SliverToBoxAdapter(
         child: Text(
@@ -188,8 +187,8 @@ class _CategoryGridSliver extends StatelessWidget {
         gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
           maxCrossAxisExtent: 430,
           mainAxisExtent: 132,
-          mainAxisSpacing: 8,
-          crossAxisSpacing: 8,
+          mainAxisSpacing: AppSpacing.xs,
+          crossAxisSpacing: AppSpacing.xs,
         ),
         itemCount: categories.length,
         itemBuilder: (context, index) {

@@ -536,6 +536,12 @@ abstract class AppLocalizations {
   /// **'حذف المعاملة'**
   String get transactionDeleteTooltip;
 
+  /// No description provided for @transactionDeleteConfirmation.
+  ///
+  /// In ar, this message translates to:
+  /// **'هل تريد حذف هذه المعاملة؟'**
+  String get transactionDeleteConfirmation;
+
   /// No description provided for @transactionEditTooltip.
   ///
   /// In ar, this message translates to:

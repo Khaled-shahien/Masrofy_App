@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../core/theme/app_design_tokens.dart';
+import '../../../core/theme/masrofy_theme_extension.dart';
 import '../../../domain/entities/category.dart';
 import '../../../domain/entities/financial_transaction.dart';
 import '../../../domain/entities/transaction_filter.dart';
@@ -12,6 +13,7 @@ import '../../cubits/transactions/transactions_cubit.dart';
 import '../../cubits/transactions/transactions_state.dart';
 import '../../models/transaction_day_group.dart';
 import '../../widgets/categories/category_localization.dart';
+import '../../widgets/categories/category_visual_registry.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/loading_skeleton.dart';
 import '../../widgets/privacy/financial_privacy.dart';
@@ -511,6 +513,13 @@ class _TransactionDetailsSheet extends StatelessWidget {
         ? l10n.unknownCategory
         : localizedCategoryName(l10n, category!);
     final obscureAmount = financialAmountsObscured(context);
+    final colors = Theme.of(context).extension<MasrofyThemeExtension>()!;
+    final amountColor = transaction.type == TransactionType.expense
+        ? colors.expense
+        : colors.income;
+    final categoryColor = category == null
+        ? Theme.of(context).colorScheme.primary
+        : Color(category!.colorValue);
 
     return SafeArea(
       child: Padding(
@@ -521,45 +530,93 @@ class _TransactionDetailsSheet extends StatelessWidget {
           children: [
             Text(
               l10n.transactionDetailsTitle,
-              style: Theme.of(context).textTheme.titleLarge,
+              style: Theme.of(context).textTheme.labelLarge,
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: categoryColor.withValues(alpha: 0.14),
+                    borderRadius: AppRadii.card,
+                  ),
+                  child: SizedBox.square(
+                    dimension: 52,
+                    child: Icon(
+                      category == null
+                          ? Icons.category_outlined
+                          : categoryIconFor(category!.iconKey),
+                      color: categoryColor,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        categoryName,
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: AppSpacing.xxs),
+                      Text(
+                        localizedTransactionType(l10n, transaction.type),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.labelLarge?.copyWith(color: amountColor),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: AppSpacing.md),
-            _DetailRow(
-              label: l10n.transactionCategoryLabel,
-              value: categoryName,
-            ),
-            _DetailRow(
-              label: l10n.transactionAmountLabel,
-              value: formatTransactionAmount(
+            Text(
+              formatTransactionAmount(
                 transaction,
                 localeName: l10n.localeName,
                 currencySymbol: l10n.currencySymbol,
                 obscure: obscureAmount,
               ),
-            ),
-            _DetailRow(
-              label: l10n.transactionTypeLabel,
-              value: localizedTransactionType(l10n, transaction.type),
-            ),
-            _DetailRow(
-              label: l10n.transactionDateLabel,
-              value: formatDay(transaction.date, localeName: l10n.localeName),
-            ),
-            if (transaction.wallet != null)
-              _DetailRow(
-                label: l10n.transactionWalletLabel,
-                value: localizedWalletName(l10n, transaction.wallet!),
+              textDirection: TextDirection.ltr,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                color: amountColor,
+                fontWeight: FontWeight.w900,
               ),
-            if (transaction.personName?.trim().isNotEmpty ?? false)
-              _DetailRow(
-                label: l10n.transactionPersonLabel,
-                value: transaction.personName!,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Column(
+                  children: [
+                    _DetailRow(
+                      label: l10n.transactionDateLabel,
+                      value: formatDay(
+                        transaction.date,
+                        localeName: l10n.localeName,
+                      ),
+                    ),
+                    if (transaction.wallet != null)
+                      _DetailRow(
+                        label: l10n.transactionWalletLabel,
+                        value: localizedWalletName(l10n, transaction.wallet!),
+                      ),
+                    if (transaction.personName?.trim().isNotEmpty ?? false)
+                      _DetailRow(
+                        label: l10n.transactionPersonLabel,
+                        value: transaction.personName!,
+                      ),
+                    if (transaction.note?.trim().isNotEmpty ?? false)
+                      _DetailRow(
+                        label: l10n.transactionNoteLabel,
+                        value: transaction.note!,
+                      ),
+                  ],
+                ),
               ),
-            if (transaction.note?.trim().isNotEmpty ?? false)
-              _DetailRow(
-                label: l10n.transactionNoteLabel,
-                value: transaction.note!,
-              ),
+            ),
             const SizedBox(height: AppSpacing.md),
             Row(
               children: [
@@ -576,12 +633,7 @@ class _TransactionDetailsSheet extends StatelessWidget {
                 const SizedBox(width: AppSpacing.xs),
                 Expanded(
                   child: FilledButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      parentContext.read<TransactionsCubit>().delete(
-                        transaction.id,
-                      );
-                    },
+                    onPressed: () => _confirmDelete(context, l10n),
                     icon: const Icon(Icons.delete_outline),
                     label: Text(l10n.transactionDeleteTooltip),
                   ),
@@ -592,6 +644,34 @@ class _TransactionDetailsSheet extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _confirmDelete(
+    BuildContext context,
+    AppLocalizations localizations,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(localizations.transactionDeleteTooltip),
+        content: Text(localizations.transactionDeleteConfirmation),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(localizations.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(localizations.commonDelete),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) {
+      return;
+    }
+    Navigator.of(context).pop();
+    parentContext.read<TransactionsCubit>().delete(transaction.id);
   }
 }
 

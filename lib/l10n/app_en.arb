@@ -73,6 +73,7 @@
   "transactionWalletLabel": "Wallet",
   "transactionNoteLabel": "Note",
   "transactionDeleteTooltip": "Delete transaction",
+  "transactionDeleteConfirmation": "Delete this transaction?",
   "transactionEditTooltip": "Edit transaction",
   "transactionDetailsTitle": "Transaction details",
   "transactionSearchLabel": "Search transactions",

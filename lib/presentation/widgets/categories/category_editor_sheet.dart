@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/theme/app_design_tokens.dart';
 import '../../../domain/entities/category.dart';
 import '../../../domain/entities/transaction_type.dart';
 import '../../../domain/entities/wallet_type.dart';
@@ -67,11 +68,17 @@ class _CategoryEditorSheetState extends State<CategoryEditorSheet> {
 
     return SafeArea(
       child: AnimatedPadding(
-        duration: const Duration(milliseconds: 180),
+        duration: AppDurations.fast,
+        curve: AppCurves.standard,
         padding: EdgeInsets.only(bottom: keyboardInset),
         child: SingleChildScrollView(
           key: const ValueKey('category-editor-sheet'),
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 20),
+          padding: const EdgeInsets.fromLTRB(
+            AppSpacing.md,
+            AppSpacing.xs,
+            AppSpacing.md,
+            AppSpacing.ml,
+          ),
           child: Form(
             key: _formKey,
             child: Column(
@@ -82,7 +89,7 @@ class _CategoryEditorSheetState extends State<CategoryEditorSheet> {
                       ? localizations.addCategory
                       : localizations.editCategory,
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: AppSpacing.md),
                 TextFormField(
                   key: const ValueKey('category-name-field'),
                   controller: _nameController,
@@ -91,38 +98,37 @@ class _CategoryEditorSheetState extends State<CategoryEditorSheet> {
                   textInputAction: TextInputAction.done,
                   decoration: InputDecoration(
                     labelText: localizations.categoryNameLabel,
-                    border: const OutlineInputBorder(),
                   ),
                   validator: _validateName,
                   onFieldSubmitted: (_) => _submit(),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: AppSpacing.ml),
                 _SectionLabel(text: localizations.categoryIconLabel),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.xs),
                 _IconPicker(
                   selectedKey: _iconKey,
                   enabled: !_isSubmitting,
                   onSelected: (value) => setState(() => _iconKey = value),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: AppSpacing.ml),
                 _SectionLabel(text: localizations.categoryColorLabel),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.xs),
                 _ColorPicker(
                   selectedValue: _colorValue,
                   enabled: !_isSubmitting,
                   onSelected: (value) => setState(() => _colorValue = value),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: AppSpacing.ml),
                 _SectionLabel(
                   text: localizations.categoryDefaultWalletLabel,
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.xs),
                 _WalletPicker(
                   selectedWallet: _defaultWallet,
                   enabled: !_isSubmitting,
                   onSelected: (value) => setState(() => _defaultWallet = value),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: AppSpacing.lg),
                 Row(
                   children: [
                     Expanded(
@@ -134,7 +140,7 @@ class _CategoryEditorSheetState extends State<CategoryEditorSheet> {
                         child: Text(localizations.commonCancel),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: AppSpacing.sm),
                     Expanded(
                       child: FilledButton(
                         key: const ValueKey('category-editor-save'),

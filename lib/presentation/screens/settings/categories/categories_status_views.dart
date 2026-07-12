@@ -10,14 +10,14 @@ class _NoCustomCategoriesCard extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colorScheme.surfaceContainerHighest,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: AppRadii.card,
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
           children: [
             Icon(Icons.add_circle_outline, color: colorScheme.primary),
-            const SizedBox(width: 12),
+            const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -28,7 +28,7 @@ class _NoCustomCategoriesCard extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: AppSpacing.xxs),
                   Text(
                     localizations.noCustomCategoriesBody,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -56,9 +56,9 @@ class _NoCategoriesBody extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.fromLTRB(
         horizontalPadding,
-        24,
+        AppSpacing.lg,
         horizontalPadding,
-        96,
+        AppSpacing.bottomNavigationClearance,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -68,7 +68,7 @@ class _NoCategoriesBody extends StatelessWidget {
             size: 44,
             color: Theme.of(context).colorScheme.primary,
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md),
           Text(
             localizations.noCategoriesTitle,
             textAlign: TextAlign.center,
@@ -76,7 +76,7 @@ class _NoCategoriesBody extends StatelessWidget {
               fontWeight: FontWeight.w700,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             localizations.noCategoriesBody,
             textAlign: TextAlign.center,
@@ -115,7 +115,7 @@ class _ErrorBody extends StatelessWidget {
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 360),
         child: Padding(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -124,7 +124,7 @@ class _ErrorBody extends StatelessWidget {
                 size: 44,
                 color: Theme.of(context).colorScheme.error,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               Text(
                 localizations.categoriesLoadError,
                 textAlign: TextAlign.center,
@@ -132,7 +132,7 @@ class _ErrorBody extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: AppSpacing.md),
               FilledButton.tonalIcon(
                 key: const ValueKey('categories-retry-button'),
                 onPressed: onRetry,

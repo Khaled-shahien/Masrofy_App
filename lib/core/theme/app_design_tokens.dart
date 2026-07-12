@@ -7,9 +7,11 @@ class AppSpacing {
   static const xs = 8.0;
   static const sm = 12.0;
   static const md = 16.0;
+  static const ml = 20.0;
   static const lg = 24.0;
   static const xl = 32.0;
-  static const xxl = 48.0;
+  static const xxl = 40.0;
+  static const xxxl = 48.0;
   static const bottomNavigationClearance = 96.0;
 }
 
@@ -49,6 +51,21 @@ class AppBreakpoints {
   static const tablet = 700.0;
   static const desktop = 1040.0;
   static const readableMaxWidth = 1040.0;
+}
+
+class AppDurations {
+  const AppDurations._();
+
+  static const fast = Duration(milliseconds: 160);
+  static const standard = Duration(milliseconds: 240);
+  static const emphasized = Duration(milliseconds: 360);
+}
+
+class AppCurves {
+  const AppCurves._();
+
+  static const standard = Curves.easeOutCubic;
+  static const emphasized = Curves.easeInOutCubic;
 }
 
 EdgeInsets responsivePagePadding(BoxConstraints constraints) {
