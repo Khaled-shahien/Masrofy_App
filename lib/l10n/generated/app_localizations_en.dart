@@ -12,6 +12,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appName => 'Masrofy';
 
   @override
+  String get settingsAboutTitle => 'About Masrofy';
+
+  @override
+  String get settingsAboutDescription =>
+      'A local-first expense tracker for income, spending, budgets, reports, wallets, and backups.';
+
+  @override
   String get dashboardTab => 'Home';
 
   @override
@@ -227,6 +234,14 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get transactionCategoryRequired => 'Choose a category';
+
+  @override
+  String get transactionUnknownCategoryValidation =>
+      'Choose an available category';
+
+  @override
+  String get transactionCategoryTypeValidation =>
+      'Choose a category that matches the transaction type';
 
   @override
   String get transactionPersonLabel => 'Person name';
@@ -583,6 +598,32 @@ class AppLocalizationsEn extends AppLocalizations {
   String get appLockUnlockAction => 'Unlock';
 
   @override
+  String get appLockBiometricUnlockAction => 'Use biometrics';
+
+  @override
+  String get appLockBiometricReason => 'Unlock Masrofy';
+
+  @override
+  String get appLockBiometricUnavailable =>
+      'Biometric unlock is unavailable. Use your PIN.';
+
+  @override
+  String get appLockBiometricEnableTitle => 'Enable biometric unlock';
+
+  @override
+  String get appLockBiometricEnableSubtitle =>
+      'Use fingerprint or face unlock when available. PIN remains the fallback.';
+
+  @override
+  String get appLockBiometricDisableTitle => 'Disable biometric unlock';
+
+  @override
+  String get appLockBiometricEnabledMessage => 'Biometric unlock enabled';
+
+  @override
+  String get appLockBiometricDisabledMessage => 'Biometric unlock disabled';
+
+  @override
   String get appLockIncorrectPin => 'Incorrect PIN';
 
   @override
@@ -593,10 +634,15 @@ class AppLocalizationsEn extends AppLocalizations {
       'Masrofy stores data locally on this device and currently has no backend sync. User-created backups stay under your control. Removing the app may remove local data if no backup exists, and device-level access can still affect privacy.';
 
   @override
-  String get backupPathLabel => 'Backup file path';
+  String get backupImportDialogTitle => 'Import backup';
 
   @override
-  String get backupImportDialogTitle => 'Import backup';
+  String get backupImportInvalidFile => 'Choose a valid Masrofy JSON backup';
+
+  @override
+  String backupSelectedFile(Object fileName) {
+    return 'Selected file: $fileName';
+  }
 
   @override
   String get backupImportModeLabel => 'Restore mode';
@@ -687,6 +733,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get settingsCategoriesSubtitle =>
       'Manage default and custom categories';
+
+  @override
+  String get settingsViewOnboardingTitle => 'View onboarding again';
+
+  @override
+  String get settingsViewOnboardingSubtitle =>
+      'Replay the welcome tour without changing your setup';
 
   @override
   String get categoriesTitle => 'Categories';
@@ -867,4 +920,49 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get notFoundBody => 'The requested destination is unavailable.';
+
+  @override
+  String get onboardingSkip => 'Skip';
+
+  @override
+  String get onboardingNext => 'Next';
+
+  @override
+  String get onboardingBack => 'Back';
+
+  @override
+  String get onboardingGetStarted => 'Get started';
+
+  @override
+  String onboardingPageIndicator(Object count, Object page) {
+    return 'Page $page of $count';
+  }
+
+  @override
+  String get onboardingWelcomeTitle => 'Welcome to Masrofy';
+
+  @override
+  String get onboardingWelcomeBody =>
+      'Track daily income and expenses clearly while keeping your data on this device.';
+
+  @override
+  String get onboardingBudgetsTitle => 'Budgets and reports';
+
+  @override
+  String get onboardingBudgetsBody =>
+      'Set monthly category budgets, follow your progress, and review charts that explain where money goes.';
+
+  @override
+  String get onboardingPrivacyTitle => 'Private by default';
+
+  @override
+  String get onboardingPrivacyBody =>
+      'Hide amounts, use a PIN lock, and optionally unlock with biometrics when your device supports it.';
+
+  @override
+  String get onboardingBackupTitle => 'Backup and export';
+
+  @override
+  String get onboardingBackupBody =>
+      'Create local backups and export reports whenever you need to keep or share your records.';
 }

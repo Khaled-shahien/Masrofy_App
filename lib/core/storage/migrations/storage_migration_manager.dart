@@ -15,17 +15,23 @@ import '../storage_key_store.dart';
 class StorageMigrationManager {
   StorageMigrationManager({
     required StorageEncryptionService encryptionService,
+    required bool encryptedDataExists,
     required StorageQuarantineStore quarantineStore,
+    Box<String>? legacyQuarantineBox,
     Box<String>? metadataBox,
   }) : _encryptionService = encryptionService,
+       _encryptedDataExists = encryptedDataExists,
        _quarantineStore = quarantineStore,
+       _legacyQuarantineBox = legacyQuarantineBox,
        _metadataBox =
            metadataBox ?? Hive.box<String>(StorageSchema.metadataBoxName);
 
   static const _schemaVersionKey = 'schemaVersion';
 
   final StorageEncryptionService _encryptionService;
+  final bool _encryptedDataExists;
   final StorageQuarantineStore _quarantineStore;
+  final Box<String>? _legacyQuarantineBox;
   final Box<String> _metadataBox;
 
   Future<StorageMigrationResult> migrate() async {
@@ -46,16 +52,23 @@ class StorageMigrationManager {
       }
 
       final cipher = HiveAesCipher(
-        await _encryptionService.readOrCreateKeyBytes(),
+        await _encryptionService.readOrCreateKeyBytes(
+          encryptedDataExists: _encryptedDataExists,
+        ),
       );
       final currentBoxes = await _openCurrentBoxes(cipher);
       await _openLegacyBoxes();
 
-      if (storedVersion < StorageSchema.currentVersion) {
+      if (storedVersion < 2) {
         quarantinedCount += await _migrateLegacyData(currentBoxes);
         appliedMigrations.add(
-          'legacy-to-encrypted-v${StorageSchema.currentVersion}',
+          'legacy-to-encrypted-v2',
         );
+      }
+
+      if (storedVersion < 3) {
+        quarantinedCount += await _migratePlaintextQuarantine();
+        appliedMigrations.add('plaintext-quarantine-to-sanitized-v3');
         await _metadataBox.put(
           _schemaVersionKey,
           StorageSchema.currentVersion.toString(),
@@ -199,8 +212,8 @@ class StorageMigrationManager {
         await _quarantineStore.record(
           boxName: StorageSchema.legacyCategoriesBoxName,
           recordKey: key,
-          rawValue: value,
-          reason: error.toString(),
+          errorCategory: _errorCategory(error),
+          migrationVersion: StorageSchema.currentVersion,
         );
       }
     }
@@ -225,8 +238,8 @@ class StorageMigrationManager {
         await _quarantineStore.record(
           boxName: StorageSchema.legacyTransactionsBoxName,
           recordKey: key,
-          rawValue: value,
-          reason: error.toString(),
+          errorCategory: _errorCategory(error),
+          migrationVersion: StorageSchema.currentVersion,
         );
       }
     }
@@ -251,8 +264,8 @@ class StorageMigrationManager {
         await _quarantineStore.record(
           boxName: StorageSchema.legacyWalletBalancesBoxName,
           recordKey: key,
-          rawValue: value,
-          reason: error.toString(),
+          errorCategory: _errorCategory(error),
+          migrationVersion: StorageSchema.currentVersion,
         );
       }
     }
@@ -275,12 +288,79 @@ class StorageMigrationManager {
         await _quarantineStore.record(
           boxName: boxName,
           recordKey: key,
-          rawValue: value,
-          reason: error.toString(),
+          errorCategory: _errorCategory(error),
+          migrationVersion: StorageSchema.currentVersion,
         );
         await box.delete(key);
       }
     }
     return quarantinedCount;
+  }
+
+  Future<int> _migratePlaintextQuarantine() async {
+    final legacyBox = _legacyQuarantineBox;
+    if (legacyBox == null || legacyBox.isEmpty) {
+      return 0;
+    }
+
+    var migratedCount = 0;
+    for (final entry in legacyBox.toMap().entries) {
+      final storageKey = entry.key.toString();
+      final value = entry.value;
+      try {
+        final decoded = jsonDecode(value);
+        if (decoded is Map) {
+          final boxName = decoded['boxName'] as String? ?? 'unknown';
+          final recordKey = decoded['recordKey'] as String? ?? storageKey;
+          final reason = decoded['reason'] as String?;
+          await _quarantineStore.record(
+            boxName: boxName,
+            recordKey: recordKey,
+            errorCategory: _legacyErrorCategory(reason),
+            migrationVersion: StorageSchema.currentVersion,
+          );
+        } else {
+          await _quarantineStore.record(
+            boxName: StorageSchema.legacyQuarantineBoxName,
+            recordKey: storageKey,
+            errorCategory: 'malformedLegacyQuarantineEntry',
+            migrationVersion: StorageSchema.currentVersion,
+          );
+        }
+      } on Object {
+        await _quarantineStore.record(
+          boxName: StorageSchema.legacyQuarantineBoxName,
+          recordKey: storageKey,
+          errorCategory: 'malformedLegacyQuarantineEntry',
+          migrationVersion: StorageSchema.currentVersion,
+        );
+      }
+      migratedCount++;
+    }
+
+    await legacyBox.clear();
+    return migratedCount;
+  }
+
+  String _errorCategory(Object error) {
+    return switch (error) {
+      FormatException() => 'formatException',
+      TypeError() => 'typeError',
+      ArgumentError() => 'argumentError',
+      _ => error.runtimeType.toString(),
+    };
+  }
+
+  String _legacyErrorCategory(String? reason) {
+    if (reason == null || reason.isEmpty) {
+      return 'legacyValidationFailure';
+    }
+    if (reason.contains('FormatException')) {
+      return 'formatException';
+    }
+    if (reason.contains('TypeError')) {
+      return 'typeError';
+    }
+    return 'legacyValidationFailure';
   }
 }

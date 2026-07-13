@@ -9,7 +9,14 @@ class AppLocalizationsAr extends AppLocalizations {
   AppLocalizationsAr([String locale = 'ar']) : super(locale);
 
   @override
-  String get appName => 'مصروفي';
+  String get appName => 'Masrofy';
+
+  @override
+  String get settingsAboutTitle => 'حول Masrofy';
+
+  @override
+  String get settingsAboutDescription =>
+      'تطبيق محلي أولًا لمتابعة الدخل والمصاريف والميزانيات والتقارير والمحافظ والنسخ الاحتياطية.';
 
   @override
   String get dashboardTab => 'الرئيسية';
@@ -223,6 +230,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get transactionCategoryRequired => 'اختر التصنيف';
+
+  @override
+  String get transactionUnknownCategoryValidation => 'اختر تصنيفًا متاحًا';
+
+  @override
+  String get transactionCategoryTypeValidation =>
+      'اختر تصنيفًا مناسبًا لنوع المعاملة';
 
   @override
   String get transactionPersonLabel => 'اسم الشخص';
@@ -575,6 +589,34 @@ class AppLocalizationsAr extends AppLocalizations {
   String get appLockUnlockAction => 'فتح';
 
   @override
+  String get appLockBiometricUnlockAction => 'استخدام البصمة أو الوجه';
+
+  @override
+  String get appLockBiometricReason => 'فتح Masrofy';
+
+  @override
+  String get appLockBiometricUnavailable =>
+      'فتح القفل بالبصمة أو الوجه غير متاح. استخدم PIN.';
+
+  @override
+  String get appLockBiometricEnableTitle => 'تفعيل فتح القفل بالبصمة أو الوجه';
+
+  @override
+  String get appLockBiometricEnableSubtitle =>
+      'استخدم بصمة الإصبع أو الوجه عند توفرها. يظل PIN متاحًا كبديل.';
+
+  @override
+  String get appLockBiometricDisableTitle => 'تعطيل فتح القفل بالبصمة أو الوجه';
+
+  @override
+  String get appLockBiometricEnabledMessage =>
+      'تم تفعيل فتح القفل بالبصمة أو الوجه';
+
+  @override
+  String get appLockBiometricDisabledMessage =>
+      'تم تعطيل فتح القفل بالبصمة أو الوجه';
+
+  @override
   String get appLockIncorrectPin => 'PIN غير صحيح';
 
   @override
@@ -585,10 +627,16 @@ class AppLocalizationsAr extends AppLocalizations {
       'يحفظ مصروفي البيانات محليًا على هذا الجهاز ولا يحتوي حاليًا على مزامنة خلفية. النسخ الاحتياطية التي تنشئها تحت تحكمك. إزالة التطبيق قد تزيل البيانات المحلية إذا لم تكن هناك نسخة احتياطية، كما أن الوصول على مستوى الجهاز قد يؤثر على الخصوصية.';
 
   @override
-  String get backupPathLabel => 'مسار ملف النسخة الاحتياطية';
+  String get backupImportDialogTitle => 'استيراد نسخة احتياطية';
 
   @override
-  String get backupImportDialogTitle => 'استيراد نسخة احتياطية';
+  String get backupImportInvalidFile =>
+      'اختر ملف نسخة احتياطية JSON صالحًا من Masrofy';
+
+  @override
+  String backupSelectedFile(Object fileName) {
+    return 'الملف المحدد: $fileName';
+  }
 
   @override
   String get backupImportModeLabel => 'طريقة الاستعادة';
@@ -679,6 +727,13 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settingsCategoriesSubtitle =>
       'إدارة التصنيفات الافتراضية والمخصصة';
+
+  @override
+  String get settingsViewOnboardingTitle => 'عرض التعريف مرة أخرى';
+
+  @override
+  String get settingsViewOnboardingSubtitle =>
+      'إعادة عرض الجولة الترحيبية بدون تغيير إعدادك';
 
   @override
   String get categoriesTitle => 'التصنيفات';
@@ -858,4 +913,49 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get notFoundBody => 'الوجهة المطلوبة غير متاحة.';
+
+  @override
+  String get onboardingSkip => 'تخطي';
+
+  @override
+  String get onboardingNext => 'التالي';
+
+  @override
+  String get onboardingBack => 'رجوع';
+
+  @override
+  String get onboardingGetStarted => 'ابدأ';
+
+  @override
+  String onboardingPageIndicator(Object count, Object page) {
+    return 'الصفحة $page من $count';
+  }
+
+  @override
+  String get onboardingWelcomeTitle => 'مرحبًا بك في Masrofy';
+
+  @override
+  String get onboardingWelcomeBody =>
+      'تابع دخلك ومصاريفك اليومية بوضوح مع بقاء بياناتك على هذا الجهاز.';
+
+  @override
+  String get onboardingBudgetsTitle => 'ميزانيات وتقارير';
+
+  @override
+  String get onboardingBudgetsBody =>
+      'حدد ميزانيات شهرية للتصنيفات، تابع تقدمك، وراجع رسومًا توضح أين تذهب الأموال.';
+
+  @override
+  String get onboardingPrivacyTitle => 'خصوصية من البداية';
+
+  @override
+  String get onboardingPrivacyBody =>
+      'أخفِ المبالغ، واستخدم قفل PIN، ويمكنك الفتح بالبصمة أو الوجه عندما يدعم جهازك ذلك.';
+
+  @override
+  String get onboardingBackupTitle => 'نسخ احتياطي وتصدير';
+
+  @override
+  String get onboardingBackupBody =>
+      'أنشئ نسخًا احتياطية محلية وصدّر التقارير عندما تحتاج للاحتفاظ بسجلاتك أو مشاركتها.';
 }

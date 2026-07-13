@@ -4,10 +4,12 @@ import 'package:hive/hive.dart';
 import 'package:uuid/uuid.dart';
 
 import '../core/security/app_lock_service.dart';
+import '../core/security/biometric_authentication_service.dart';
 import '../core/security/secure_value_store.dart';
 import '../core/settings/app_settings_store.dart';
 import '../core/storage/local_storage_bootstrap.dart';
 import '../data/backup/backup_restore_service.dart';
+import '../data/backup/backup_file_picker.dart';
 import '../data/catalog/default_category_catalog.dart';
 import '../data/datasources/budgets/budget_local_data_source.dart';
 import '../data/datasources/categories/category_local_data_source.dart';
@@ -52,14 +54,22 @@ import '../routing/app_router.dart';
 final serviceLocator = GetIt.instance;
 
 /// Registers application services and seeds the default category catalog.
-Future<void> configureDependencies() async {
+Future<void> configureDependencies({
+  bool? existingInstallation,
+  bool allowInMemoryStores = false,
+}) async {
   const uuid = Uuid();
 
   _registerSingletonIfAbsent<SecureValueStore>(FlutterSecureValueStore());
   _registerLazySingletonIfAbsent<AppLockService>(
     () => AppLockService(secureStore: serviceLocator<SecureValueStore>()),
   );
-  _registerSingletonIfAbsent<AppSettingsStore>(_createAppSettingsStore());
+  _registerLazySingletonIfAbsent<BiometricAuthenticationService>(
+    LocalAuthBiometricAuthenticationService.new,
+  );
+  _registerSingletonIfAbsent<AppSettingsStore>(
+    _createAppSettingsStore(allowInMemoryStores: allowInMemoryStores),
+  );
   _registerSingletonIfAbsent<CategoryLocalDataSource>(
     _createCategoryLocalDataSource(),
     dispose: (dataSource) async {
@@ -139,6 +149,7 @@ Future<void> configureDependencies() async {
   _registerLazySingletonIfAbsent<SaveTransaction>(
     () => SaveTransaction(
       repository: serviceLocator<TransactionRepository>(),
+      categoryRepository: serviceLocator<CategoryRepository>(),
       generateId: uuid.v4,
     ),
   );
@@ -175,6 +186,9 @@ Future<void> configureDependencies() async {
   );
   _registerLazySingletonIfAbsent<BuildReport>(BuildReport.new);
   _registerLazySingletonIfAbsent<DataExportService>(DataExportService.new);
+  _registerLazySingletonIfAbsent<BackupFilePicker>(
+    PlatformBackupFilePicker.new,
+  );
   _registerLazySingletonIfAbsent<BackupRestoreService>(
     () => BackupRestoreService(
       transactionDataSource: serviceLocator<TransactionLocalDataSource>(),
@@ -205,7 +219,11 @@ Future<void> configureDependencies() async {
     () => AppSettingsCubit(store: serviceLocator<AppSettingsStore>()),
   );
   _registerFactoryIfAbsent<AppLockCubit>(
-    () => AppLockCubit(appLockService: serviceLocator<AppLockService>()),
+    () => AppLockCubit(
+      appLockService: serviceLocator<AppLockService>(),
+      biometricAuthenticationService:
+          serviceLocator<BiometricAuthenticationService>(),
+    ),
   );
   _registerFactoryIfAbsent<WalletBalancesCubit>(
     () => WalletBalancesCubit(
@@ -236,6 +254,11 @@ Future<void> configureDependencies() async {
     () => serviceLocator<AppRouter>().router,
   );
 
+  if (existingInstallation != null) {
+    await serviceLocator<AppSettingsStore>().migrateOnboardingState(
+      existingInstallation: existingInstallation,
+    );
+  }
   await serviceLocator<InitializeDefaultCategories>()();
 }
 
@@ -302,11 +325,16 @@ BudgetLocalDataSource _createBudgetLocalDataSource() {
   return InMemoryBudgetLocalDataSource();
 }
 
-AppSettingsStore _createAppSettingsStore() {
+AppSettingsStore _createAppSettingsStore({required bool allowInMemoryStores}) {
   if (Hive.isBoxOpen(LocalStorageBootstrap.settingsBoxName)) {
     return HiveAppSettingsStore(
       Hive.box<String>(LocalStorageBootstrap.settingsBoxName),
     );
   }
-  return InMemoryAppSettingsStore();
+  if (allowInMemoryStores) {
+    return InMemoryAppSettingsStore();
+  }
+  throw StateError(
+    'Persistent settings storage is not initialized. Startup cannot continue.',
+  );
 }

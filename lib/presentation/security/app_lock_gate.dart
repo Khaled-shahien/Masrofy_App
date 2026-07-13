@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../core/security/app_lock_service.dart';
+import '../../core/security/biometric_authentication_service.dart';
 import '../../core/theme/app_design_tokens.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../cubits/security/app_lock_cubit.dart';
@@ -170,6 +171,17 @@ class _AppLockScreenState extends State<_AppLockScreen> {
                           : const SizedBox.shrink(),
                     ),
                     const SizedBox(height: AppSpacing.md),
+                    if (state.canUseBiometrics) ...[
+                      OutlinedButton.icon(
+                        key: const ValueKey('app-lock-biometric-button'),
+                        onPressed: isLockedOut
+                            ? null
+                            : () => _unlockWithBiometrics(context),
+                        icon: const Icon(Icons.fingerprint),
+                        label: Text(l10n.appLockBiometricUnlockAction),
+                      ),
+                      const SizedBox(height: AppSpacing.sm),
+                    ],
                     FilledButton.icon(
                       key: const ValueKey('app-lock-unlock-button'),
                       onPressed: isLockedOut ? null : () => _unlock(context),
@@ -198,5 +210,24 @@ class _AppLockScreenState extends State<_AppLockScreen> {
     if (result.outcome != PinVerificationOutcome.success) {
       _pinController.clear();
     }
+  }
+
+  Future<void> _unlockWithBiometrics(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final cubit = context.read<AppLockCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+    final outcome = await cubit.unlockWithBiometrics(
+      localizedReason: l10n.appLockBiometricReason,
+    );
+    if (!mounted ||
+        outcome == BiometricAuthenticationOutcome.success ||
+        outcome == BiometricAuthenticationOutcome.cancelled) {
+      return;
+    }
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(content: Text(l10n.appLockBiometricUnavailable)),
+      );
   }
 }

@@ -29,6 +29,8 @@ class WalletBalancesCubit extends Cubit<WalletBalancesState> {
   StreamSubscription<List<FinancialTransaction>>? _transactionsSubscription;
   List<WalletBalance> _balances = const [];
   List<FinancialTransaction> _transactions = const [];
+  bool _hasBalancesSnapshot = false;
+  bool _hasTransactionsSnapshot = false;
 
   void load() {
     emit(
@@ -36,12 +38,15 @@ class WalletBalancesCubit extends Cubit<WalletBalancesState> {
     );
     unawaited(_balancesSubscription?.cancel());
     unawaited(_transactionsSubscription?.cancel());
+    _hasBalancesSnapshot = false;
+    _hasTransactionsSnapshot = false;
 
     _balancesSubscription = _walletBalanceRepository
         .watchWalletBalances()
         .listen(
           (balances) {
             _balances = balances;
+            _hasBalancesSnapshot = true;
             _emitReady();
           },
           onError: _emitFailure,
@@ -52,6 +57,7 @@ class WalletBalancesCubit extends Cubit<WalletBalancesState> {
         .listen(
           (transactions) {
             _transactions = transactions;
+            _hasTransactionsSnapshot = true;
             _emitReady();
           },
           onError: _emitFailure,
@@ -80,6 +86,12 @@ class WalletBalancesCubit extends Cubit<WalletBalancesState> {
   }
 
   void _emitReady() {
+    if (!_hasBalancesSnapshot || !_hasTransactionsSnapshot) {
+      emit(
+        state.copyWith(status: WalletBalancesStatus.loading, clearError: true),
+      );
+      return;
+    }
     emit(
       state.copyWith(
         status: WalletBalancesStatus.ready,

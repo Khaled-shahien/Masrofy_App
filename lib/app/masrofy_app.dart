@@ -8,6 +8,7 @@ import '../l10n/generated/app_localizations.dart';
 import '../presentation/cubits/security/app_lock_cubit.dart';
 import '../presentation/cubits/settings/app_settings_cubit.dart';
 import '../presentation/cubits/transactions/transactions_cubit.dart';
+import '../presentation/screens/onboarding/onboarding_screen.dart';
 import '../presentation/security/app_lock_gate.dart';
 
 class MasrofyApp extends StatelessWidget {
@@ -40,6 +41,15 @@ class MasrofyApp extends StatelessWidget {
             darkTheme: AppTheme.dark(),
             themeMode: settings.themeMode,
             builder: (context, child) {
+              if (!settings.onboardingCompleted) {
+                return OnboardingScreen(
+                  onFinished: () {
+                    return context
+                        .read<AppSettingsCubit>()
+                        .completeOnboarding();
+                  },
+                );
+              }
               return AppLockGate(child: child ?? const SizedBox.shrink());
             },
           );

@@ -22,7 +22,7 @@ void main() {
       tempDir = await Directory.systemTemp.createTemp('masrofy_migration');
       Hive.init(tempDir.path);
       await Hive.openBox<String>(StorageSchema.metadataBoxName);
-      await Hive.openBox<String>(StorageSchema.quarantineBoxName);
+      await Hive.openBox<String>(StorageSchema.legacyQuarantineBoxName);
       await Hive.openBox<String>(StorageSchema.legacyCategoriesBoxName);
       await Hive.openBox<String>(StorageSchema.legacyTransactionsBoxName);
       await Hive.openBox<String>(StorageSchema.legacySettingsBoxName);
@@ -110,9 +110,20 @@ void main() {
             InMemoryStorageKeyStore(),
           ),
           quarantineStore: StorageQuarantineStore(
-            Hive.box<String>(StorageSchema.quarantineBoxName),
+            await Hive.openBox<String>(
+              StorageSchema.quarantineBoxName,
+              encryptionCipher: HiveAesCipher(
+                await StorageEncryptionService(
+                  InMemoryStorageKeyStore(),
+                ).readOrCreateKeyBytes(),
+              ),
+            ),
           ),
           metadataBox: Hive.box<String>(StorageSchema.metadataBoxName),
+          legacyQuarantineBox: Hive.box<String>(
+            StorageSchema.legacyQuarantineBoxName,
+          ),
+          encryptedDataExists: false,
         );
 
         final result = await manager.migrate();
@@ -123,16 +134,36 @@ void main() {
         expect(result.quarantinedRecordCount, 1);
         expect(Hive.box<String>(StorageSchema.transactionsBoxName).length, 1);
         expect(Hive.box<String>(StorageSchema.quarantineBoxName).length, 1);
+        final quarantineJson =
+            jsonDecode(
+                  Hive.box<String>(
+                    StorageSchema.quarantineBoxName,
+                  ).values.single,
+                )
+                as Map<String, Object?>;
+        expect(quarantineJson, isNot(contains('rawValue')));
+        expect(quarantineJson['errorCategory'], 'formatException');
       },
     );
 
     test('is idempotent when migration is rerun', () async {
-      final manager = StorageMigrationManager(
-        encryptionService: StorageEncryptionService(InMemoryStorageKeyStore()),
-        quarantineStore: StorageQuarantineStore(
-          Hive.box<String>(StorageSchema.quarantineBoxName),
+      final encryptionService = StorageEncryptionService(
+        InMemoryStorageKeyStore(),
+      );
+      final quarantineBox = await Hive.openBox<String>(
+        StorageSchema.quarantineBoxName,
+        encryptionCipher: HiveAesCipher(
+          await encryptionService.readOrCreateKeyBytes(),
         ),
+      );
+      final manager = StorageMigrationManager(
+        encryptionService: encryptionService,
+        quarantineStore: StorageQuarantineStore(quarantineBox),
         metadataBox: Hive.box<String>(StorageSchema.metadataBoxName),
+        legacyQuarantineBox: Hive.box<String>(
+          StorageSchema.legacyQuarantineBoxName,
+        ),
+        encryptedDataExists: false,
       );
 
       final first = await manager.migrate();

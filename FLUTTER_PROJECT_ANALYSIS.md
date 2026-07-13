@@ -1,1334 +1,2342 @@
-# Flutter Mobile App — Complete Project Analysis
+# Flutter Mobile App - Complete Project Analysis
 
 ## 1. Executive Summary
 
-Masrofy is an offline-first expense tracking app focused on recording income and expenses, browsing transaction history, reviewing spending summaries, managing category metadata, and maintaining wallet balances for selected digital wallets. The confirmed user-facing flows are the dashboard, history, reports, budgets placeholder, settings, category management, and wallet balance management. The app name is Masrofy in English and مصروفي in Arabic, with Arabic as the stored default locale.
+Masrofy is a Flutter expense-tracking application focused on local personal finance management. Repository evidence shows features for transactions, categories, budgets, reports, wallet balances, backup/restore, export, privacy masking, and a local PIN-based app lock. The product appears targeted at Arabic and English users, with Arabic as the default locale and Egyptian currency formatting.
 
-The repository uses a clean layered structure with presentation, domain, data, and core folders. Presentation state is built with Cubit from flutter_bloc, routing is declarative with go_router, dependency wiring uses GetIt, and persistence is handled locally with Hive. Models use a mix of Freezed and Equatable, localization is generated from ARB files, and the UI uses Material 3 plus a small custom design-token layer.
+The app uses a layered architecture:
 
-The strongest parts of the codebase are the separation between UI and domain logic, the presence of useful unit and widget tests, the responsive layout utilities, and the localized Arabic/English experience. The most serious risks are the placeholder budgets screen, the absence of any verified release-ready signing or store configuration, plain-text local storage for financial data, and the automatic import of fixed sample expenses during startup.
+- `lib/presentation/` for screens, widgets, and Cubits.
+- `lib/domain/` for entities, repository contracts, and use cases.
+- `lib/data/` for Hive-backed data sources, models, repositories, backup, and export.
+- `lib/core/` for storage, security, theme, settings, and formatting utilities.
+- `lib/di/service_locator.dart` for GetIt service registration.
+- `lib/routing/app_router.dart` for GoRouter routes.
 
-This is safe to continue feature development on, but not yet safe to treat as production-ready without stabilizing the release configuration, deciding what to do with the seeded demo data, and clarifying whether local financial data needs encryption or export/privacy controls.
+Main technologies include Flutter Material 3, `flutter_bloc` Cubits, `get_it`, `go_router`, Hive with local encryption for current data boxes, `flutter_secure_storage`, `freezed`, `json_serializable`, `fl_chart`, `pdf`, `printing`, and `excel`.
+
+Implementation maturity is high for an offline/local-first application. The repository has broad unit and widget test coverage, strict analyzer settings, and validation commands completed successfully:
+
+- `flutter analyze`: no issues found.
+- `flutter test`: 111 tests passed.
+
+Strongest areas:
+
+- Clear separation between presentation, domain, data, storage, and DI.
+- Broad test coverage across storage migrations, app lock, backup/restore, exports, use cases, Cubits, and screens.
+- Local data migration and quarantine mechanisms exist.
+- Backup restore includes validation and rollback behavior.
+- Arabic/English localization is wired through Flutter l10n.
+
+Most serious risks:
+
+- The startup path initializes storage and dependencies before `runApp`, then the bootstrap widget can run the same initialization again.
+- Storage quarantine records can contain raw financial record values, while the quarantine box is opened without Hive encryption.
+- Native release identifiers and web manifest metadata still contain Flutter template values such as `com.example.masrofy` and "A new Flutter project."
+- Web readiness is doubtful because user-facing settings/export code imports `dart:io`.
+- The app-lock biometric setting is stored, but no biometric plugin or biometric authentication flow was detected.
+
+It is safe to continue feature development with precautions. Before large new features, stabilize startup idempotency, security around quarantine storage, release identifiers, and target-platform expectations. Production readiness requires external verification of signing, store metadata, app identifiers, platform behavior, and privacy/security requirements.
 
 ## 2. Analysis Scope and Method
 
-This report is based on static inspection of the current repository state only, plus safe read-only validation commands. The main evidence sources were the app entry point, routing and DI setup, core storage/theme files, presentation screens and Cubits, domain use cases and entities, data sources and models, localization files, tests, platform configuration, and Git status. Generated files were inspected only to confirm serialization/localization behavior and were not modified.
+Statically inspected the repository from:
 
-Commands executed during analysis:
+`F:\Projects\Flutter Projects\Random Apps\masrofy`
 
-- git status --short; git branch --show-current; git rev-parse HEAD
-- flutter --version; dart --version
-- flutter analyze
-- flutter test
-- git status --short
+Primary files inspected include:
+
+- `README.md`
+- `rules.md`
+- `pubspec.yaml`
+- `pubspec.lock`
+- `analysis_options.yaml`
+- `l10n.yaml`
+- `lib/main.dart`
+- `lib/app/masrofy_bootstrap_app.dart`
+- `lib/app/masrofy_app.dart`
+- `lib/routing/app_router.dart`
+- `lib/di/service_locator.dart`
+- `lib/core/storage/local_storage_bootstrap.dart`
+- `lib/core/storage/storage_schema.dart`
+- `lib/core/storage/migrations/storage_migration_manager.dart`
+- `lib/core/security/app_lock_service.dart`
+- `lib/core/security/secure_value_store.dart`
+- Major files under `lib/data/`, `lib/domain/`, and `lib/presentation/`
+- Platform configuration under `android/`, `ios/`, `macos/`, `windows/`, `linux/`, and `web/`
+- Test inventory under `test/`
+
+Generated and cache directories such as `.dart_tool/`, `build/`, `coverage/`, generated l10n files, generated Freezed/JSON files, and platform build artifacts were ignored except where they were needed to understand configuration.
+
+Validation commands executed:
+
+| Command | Result | Notes |
+| --- | --- | --- |
+| `git status --short` | Completed | Baseline showed pre-existing deleted Markdown/prompt files. |
+| `flutter --version` | Completed | Flutter `3.42.0-0.4.pre`, beta channel. |
+| `dart --version` | Completed | Dart `3.12.0-113.2.beta`. |
+| `flutter pub get` | Completed | Dependencies resolved; 19 newer versions are incompatible with current constraints. |
+| `flutter analyze` | Passed | No issues found; reported runtime was 52.0s. |
+| `flutter test` | Passed | 111 tests passed. PDF export tests warned about unavailable Google Fonts download and Helvetica fallback. |
+
+No application source code, dependency version, generated file, native release configuration, or app behavior was intentionally modified. This report is the only intended repository change.
 
 ## 3. Repository Status During Analysis
 
-- Current branch: main
-- Current commit hash: c39e8e043123c8df1e840a89ce1290dba5e14873
-- Working tree before analysis: clean
-- Modified files before analysis: none
-- Untracked files before analysis: none
-- Analysis commands changed files: no
-- Final Git status: clean
+Git was available.
 
-Repository notes:
+| Item | Value |
+| --- | --- |
+| Branch | `main` |
+| Commit | `33c75c1b564fdee96155f68634dd0ff6847e867c` |
+| Working tree before analysis | Not clean |
 
-- No source files were modified during analysis.
-- No generated files were regenerated during analysis.
-- The report file itself was created in the project root as a new documentation artifact.
+Pre-existing status before this report was recreated:
+
+```text
+ D FLUTTER_PROJECT_ANALYSIS.md
+ D MASROFY_UI_UX_IMPLEMENTATION_REPORT.md
+ D codex_flutter_full_review_prompt.md
+ D codex_ui_ux_deep_enhancement_prompt.md
+```
+
+The deleted Markdown/prompt files appeared before any file edit in this analysis. They were not reverted or modified.
+
+Analysis commands did not intentionally change app source. `flutter pub get` completed successfully. No dependency files were intentionally edited.
+
+Final Git status observed after report creation:
+
+```text
+ M FLUTTER_PROJECT_ANALYSIS.md
+ D MASROFY_UI_UX_IMPLEMENTATION_REPORT.md
+ D codex_flutter_full_review_prompt.md
+ D codex_ui_ux_deep_enhancement_prompt.md
+?? assets/images/logos/logo1.jpg
+?? assets/images/logos/logo2.png
+```
+
+`FLUTTER_PROJECT_ANALYSIS.md` is the intended documentation change. The deleted Markdown/prompt files were present before analysis. The untracked logo files appeared during the analysis window; they are not referenced by app code and are not declared in `pubspec.yaml` from the static checks performed. Their origin is unable to verify from repository code alone.
 
 ## 4. Application Overview
 
-Confirmed purpose: personal expense tracking and wallet balance management.
+Confirmed application identity:
 
-Confirmed user-facing areas:
+| Item | Evidence |
+| --- | --- |
+| Flutter package name | `name: masrofy` in `pubspec.yaml` |
+| Description | `Masrofy expense tracking app.` in `pubspec.yaml` |
+| Android app label | `masrofy` in `android/app/src/main/AndroidManifest.xml` |
+| iOS display name | `Masrofy` in `ios/Runner/Info.plist` |
+| macOS product name | `masrofy` in `macos/Runner/Configs/AppInfo.xcconfig` |
+| Web app name | `masrofy` in `web/manifest.json` |
 
-- Dashboard for today/week/month summaries and recent transactions
-- History view grouped by day
-- Reports view aggregating expenses by category
-- Budgets screen, currently a placeholder empty state
-- Settings for locale, theme, wallet balances, and category management
-- Category management for default and custom categories
-- Wallet balance editing for InstaPay and Vodafone Cash
-- Add transaction bottom sheet
+Confirmed product purpose:
 
-Current maturity:
+Masrofy is an offline/local expense tracking app. It supports income and expense transactions, categories, reports, monthly budgets, tracked wallet balances, backups, exports, app lock, and privacy masking.
 
-- The app is functionally coherent for local expense tracking.
-- Core persistence, category seeding, transaction saving, history, reporting, and settings are implemented.
-- Budgeting exists only as a stub screen.
-- No backend, auth, sync, or monetization flow is implemented.
+Target users:
+
+- Confirmed: Arabic and English users, based on `lib/l10n/app_ar.arb`, `lib/l10n/app_en.arb`, l10n setup, and Arabic default locale in `AppSettingsStore`.
+- Reasonable inference: Egyptian personal finance users, based on EGP/currency formatting and wallet types such as InstaPay and Vodafone Cash.
+
+Core user-facing features:
+
+- Dashboard summaries.
+- Add/edit/delete transactions.
+- Transaction history with filters.
+- Category management.
+- Monthly budgets.
+- Reports and charts.
+- Excel/PDF export.
+- Backup/restore.
+- Wallet balance calibration.
+- Theme and language settings.
+- Hide/reveal financial amounts.
+- Local PIN app lock.
+
+Premium, restricted, administrative, payment, and internal roles:
+
+Not detected in the current repository.
+
+Current development status:
+
+Mostly complete as a local-first Flutter app from static inspection and passing tests. Release readiness still requires external and runtime verification.
 
 ## 5. Supported Platforms and Build Targets
 
-Confirmed platform folders exist for Android, iOS, web, macOS, Windows, and Linux. The actual app behavior is primarily mobile-oriented, but the Flutter scaffold for desktop and web is present.
+Repository platform folders:
 
-Statically confirmed platform behavior:
+| Platform | Folder | Status from repository |
+| --- | --- | --- |
+| Android | `android/` | Present and configured. |
+| iOS | `ios/` | Present and configured. |
+| Web | `web/` | Present, but runtime/build readiness is questionable due `dart:io` use in app code. |
+| macOS | `macos/` | Present. |
+| Windows | `windows/` | Present. |
+| Linux | `linux/` | Present. |
 
-- Android launcher activity exists and uses standard FlutterActivity.
-- iOS uses the standard Flutter app delegate and scene delegate.
-- Web uses path URL strategy from the Flutter app bootstrap.
-- macOS, Windows, and Linux contain standard template runners with no app-specific platform logic.
+SDK constraints:
 
-Unknown or unverified:
+- Dart SDK constraint in `pubspec.yaml`: `^3.12.0-113.2.beta`
+- Flutter version observed from `flutter --version`: `3.42.0-0.4.pre`
+- `pubspec.lock` indicates Flutter SDK `>=3.38.4` and Dart `>=3.12.0-113.2.beta <4.0.0`.
 
-- Which platforms are actively supported in product terms.
-- Whether desktop/web are meant to be release targets or are only scaffold leftovers.
+Build flavors:
+
+No custom Flutter flavors or `lib/main_*.dart` entry points were detected. The only app entry point found is `lib/main.dart`.
+
+Platform confidence:
+
+- Android/iOS/mobile: high static confidence for core local app behavior.
+- Desktop: moderate static confidence; file IO and path provider are used, but desktop runtime was not executed.
+- Web: requires runtime/build verification because `lib/presentation/screens/settings/settings_screen.dart` and export paths use `dart:io`, which is incompatible with Flutter web unless conditionally isolated.
 
 ## 6. Technology Stack
 
-Confirmed stack:
+| Area | Packages / Files | Notes |
+| --- | --- | --- |
+| App framework | Flutter, Material 3 | `lib/core/theme/app_theme.dart` |
+| State management | `flutter_bloc`, Cubit, local `StatefulWidget` state | Cubits under `lib/presentation/cubits/` |
+| Routing | `go_router` | `lib/routing/app_router.dart` |
+| Dependency injection | `get_it` | `lib/di/service_locator.dart` |
+| Local storage | `hive`, `hive_flutter` | Data sources under `lib/data/datasources/` |
+| Secure storage | `flutter_secure_storage` | `lib/core/security/secure_value_store.dart` |
+| Serialization | `freezed`, `json_serializable`, manual JSON parsing | Models under `lib/data/models/` |
+| Localization | `flutter_localizations`, `intl`, Flutter l10n | `l10n.yaml`, `lib/l10n/` |
+| Charts | `fl_chart` | Reports screens/widgets |
+| Export | `excel`, `pdf`, `printing`, `path_provider` | `lib/data/export/` |
+| Security/hash | `crypto` | `AppLockService` |
+| IDs | `uuid` | Category/transaction/budget creation |
+| Testing | `flutter_test`, `mockito`, `bloc_test`, `checks`, `coverage`, `integration_test` dev dependency | Tests under `test/`; no `integration_test/` folder detected |
 
-- Flutter and Dart on beta channel: Flutter 3.42.0-0.4.pre and Dart 3.12.0-113.2.beta
-- Material 3 theming
-- go_router for navigation
-- flutter_bloc for Cubits and BlocBuilder/BlocConsumer
-- get_it for dependency injection
-- Hive and hive_flutter for local persistence
-- freezed_annotation and generated Freezed models
-- equatable for immutable state and entity equality
-- intl and flutter_localizations for localization and date/number formatting
-- uuid for generated identifiers
-- widget preview support through flutter/widget_previews.dart in one preview-only file
-
-Declared but not active in app code:
-
-- connectivity_plus
-- flutter_dotenv
-- flutter_local_notifications
-- fl_chart
-- excel
-- pdf
-- printing
+Networking clients, Firebase SDKs, analytics SDKs, payment SDKs, ads SDKs, maps SDKs, and remote backend packages were not detected in app dependencies.
 
 ## 7. Project Structure
 
-Important structure map:
+Important directory map:
 
 ```text
 lib/
-├── app/                      Application root widget
-├── core/                     Shared storage, settings, and theme infrastructure
-├── data/                     Local models, data sources, repositories, seeded data
-├── di/                       GetIt service registration
-├── domain/                   Entities, repositories, use cases
-├── l10n/                     ARB files and generated localization
-├── presentation/             Screens, reusable widgets, Cubits, shell
-├── routing/                  go_router configuration
-└── main.dart                 Startup entry point
+|-- app/                       # Bootstrap widget and root MaterialApp.router
+|-- core/
+|   |-- export/                 # Local export writer and file naming helpers
+|   |-- security/               # App lock service, secure value storage
+|   |-- settings/               # App settings persistence
+|   |-- storage/                # Hive bootstrap, schema, migrations, quarantine
+|   |-- theme/                  # Material theme and design tokens
+|-- data/
+|   |-- backup/                 # Backup/restore service
+|   |-- catalog/                # Default category catalog
+|   |-- datasources/            # Hive/in-memory data sources
+|   |-- export/                 # Excel/PDF exporters and data export service
+|   |-- models/                 # Persistence/serialization models
+|   |-- repositories/           # Repository implementations
+|-- di/                         # GetIt registration
+|-- domain/
+|   |-- entities/               # Business entities and enums
+|   |-- repositories/           # Repository interfaces
+|   |-- usecases/               # Business actions and aggregations
+|-- l10n/                       # ARB localization and generated output
+|-- presentation/
+|   |-- cubits/                 # Feature Cubits and state classes
+|   |-- models/                 # UI helper models
+|   |-- screens/                # Dashboard, history, reports, budgets, settings
+|   |-- security/               # App lock gate and screens
+|   |-- shell/                  # Main navigation shell
+|   |-- widgets/                # Shared/reusable widgets
+|-- routing/                    # GoRouter definitions
+|-- main.dart                   # Primary entry point
 ```
 
-Responsibilities by major directory:
+Project-level folders:
 
-- lib/app: root app widget and app-wide providers
-- lib/core: local storage bootstrap, app settings storage, theme tokens, theme extension
-- lib/data: Hive-backed implementations, serializable models, demo data seeding
-- lib/domain: pure business rules and repository contracts
-- lib/presentation: screens, reusable widgets, Cubits, and shell navigation
-- lib/routing: route definitions and shell route assembly
-- lib/l10n: localized strings and generated delegates
+```text
+android/       # Android Gradle project and manifests
+ios/           # iOS Runner project
+macos/         # macOS Runner project
+windows/       # Windows Runner project
+linux/         # Linux Runner project
+web/           # Flutter web manifest and icons
+test/          # Unit and widget tests
+coverage/      # Generated coverage output, ignored for implementation analysis
+build/         # Generated build output, ignored
+.dart_tool/    # Flutter/Dart generated metadata, ignored
+```
 
-No assets directory is declared in pubspec.yaml.
+No `lib/features/`, `lib/services/`, `lib/providers/`, or `lib/blocs/` directories were detected. The app is layer-first rather than feature-first.
 
 ## 8. Application Startup and Initialization Flow
 
-Confirmed startup order from [lib/main.dart](lib/main.dart):
+Primary entry point: `lib/main.dart`
 
-1. WidgetsFlutterBinding.ensureInitialized()
-2. usePathUrlStrategy()
-3. LocalStorageBootstrap.initialize()
-4. configureDependencies()
-5. runApp(MasrofyApp())
+Confirmed order in `main()`:
 
-The first two steps are synchronous setup. LocalStorageBootstrap opens Hive and four versioned string boxes. configureDependencies then builds the GetIt graph, seeds default categories, and conditionally imports provided expenses if the transactions box is already open.
+1. `WidgetsFlutterBinding.ensureInitialized()`
+2. `usePathUrlStrategy()`
+3. `await LocalStorageBootstrap.initialize()`
+4. `await configureDependencies()`
+5. `runApp(const MasrofyBootstrapApp())`
 
-The app widget then resolves the GoRouter and injects AppSettingsCubit plus a loaded TransactionsCubit into the widget tree. The Settings Cubit is a lazy singleton; the Transactions Cubit is created per app tree build and immediately calls load().
+Root bootstrap widget: `MasrofyBootstrapApp` in `lib/app/masrofy_bootstrap_app.dart`
 
-Startup flow diagram:
+Confirmed bootstrap behavior:
+
+- `MasrofyBootstrapApp` owns a `_bootstrapFuture`.
+- Its default bootstrap callback again calls `LocalStorageBootstrap.initialize()` and `configureDependencies()`.
+- A temporary `MaterialApp` shows a startup loading screen while the future runs.
+- Startup failure shows `StartupFailureScreen` with retry.
+- Success renders `MasrofyApp`.
+
+Root app widget: `MasrofyApp` in `lib/app/masrofy_app.dart`
+
+Confirmed root app behavior:
+
+- Reads `GoRouter` from `serviceLocator`.
+- Provides `AppSettingsCubit` as a singleton value.
+- Creates and loads `AppLockCubit`.
+- Creates and loads global `TransactionsCubit`.
+- Builds `MaterialApp.router`.
+- Wraps app content with `AppLockGate`.
+
+Startup diagram:
 
 ```mermaid
 flowchart TD
-    A[main.dart] --> B[WidgetsFlutterBinding.ensureInitialized]
+    A[lib/main.dart main] --> B[WidgetsFlutterBinding.ensureInitialized]
     B --> C[usePathUrlStrategy]
     C --> D[LocalStorageBootstrap.initialize]
-    D --> E[Hive.initFlutter + open boxes]
-    E --> F[configureDependencies]
-    F --> G[Register data sources, repositories, use cases, Cubits, router]
-    G --> H[InitializeDefaultCategories]
-    H --> I{Transactions box open?}
-    I -- yes --> J[ProvidedExpensesImporter.importOnce]
-    I -- no --> K[Skip demo import]
-    J --> L[runApp MasrofyApp]
-    K --> L
-    L --> M[Resolve GoRouter + provide Cubits]
+    D --> E[configureDependencies]
+    E --> F[runApp MasrofyBootstrapApp]
+    F --> G[MasrofyBootstrapApp bootstrap future]
+    G --> H[LocalStorageBootstrap.initialize again]
+    H --> I[configureDependencies again]
+    I --> J[MasrofyApp]
+    J --> K[Provide AppSettingsCubit]
+    J --> L[Create AppLockCubit and load]
+    J --> M[Create TransactionsCubit and load]
+    J --> N[MaterialApp.router]
+    N --> O[AppLockGate]
+    O --> P[GoRouter initial /dashboard]
 ```
 
-Blocking or fragile startup operations:
+Blocking startup operations:
 
-- Hive initialization and box opening
-- Service locator registration
-- Default category seeding
-- Optional demo-transaction import
+- Hive initialization and box opening in `LocalStorageBootstrap.initialize()`.
+- Secure storage access for the Hive encryption key.
+- Storage migration via `StorageMigrationManager`.
+- Dependency registration in `configureDependencies()`.
+- Default category initialization via `InitializeDefaultCategories`.
 
-No Firebase, auth restoration, remote config, analytics, orientation lock, or zone error handler is present.
+Failure behavior:
+
+- `LocalStorageBootstrap.initialize()` throws `StateError` if migration fails.
+- `MasrofyBootstrapApp` can show `StartupFailureScreen` and retry.
+- If the pre-`runApp` initialization in `main.dart` fails, `runApp` is never reached, so the startup failure UI will not appear for that first failure path.
+
+Potential startup issue:
+
+Duplicate initialization is confirmed by `lib/main.dart` and `MasrofyBootstrapApp`. `service_locator.dart` guards many registrations with helper methods that skip already-registered types, which reduces but does not eliminate the need for runtime verification around double Hive initialization, box opening, and async races.
+
+Not detected:
+
+- Firebase initialization.
+- Environment file loading.
+- Global `runZonedGuarded`.
+- `FlutterError.onError`.
+- `PlatformDispatcher.instance.onError`.
+- Analytics setup.
+- Remote configuration.
+- Notification initialization.
+- Orientation locking.
 
 ## 9. Architecture Analysis
 
-The app is a layered Flutter application with a clear domain boundary and local data implementation.
+The project uses a layered, Clean Architecture-inspired structure with BLoC/Cubit presentation state, use cases, repository interfaces, repository implementations, local data sources, and shared core infrastructure.
 
-Observed dependency flow:
+Confirmed dependency flow:
 
-- Presentation depends on domain use cases and domain entities
-- Domain defines repository interfaces and business rules
-- Data implements the repository interfaces using Hive-backed data sources
-- Core provides storage and theme infrastructure shared by presentation and DI
+```mermaid
+flowchart TD
+    UI[Presentation screens and widgets] --> Cubits[Presentation Cubits]
+    Cubits --> Usecases[Domain use cases]
+    Usecases --> RepoContracts[Domain repository interfaces]
+    RepoImpl[Data repository implementations] --> RepoContracts
+    RepoImpl --> DataSources[Hive or in-memory data sources]
+    DataSources --> Models[Data models and JSON mapping]
+    DataSources --> Hive[Hive boxes]
+    Core[Core storage/security/settings/theme] --> DataSources
+    Core --> Cubits
+    DI[GetIt service locator] --> UI
+    DI --> Cubits
+    DI --> Usecases
+    DI --> RepoImpl
+    DI --> Core
+```
 
-Architecture characteristics:
+Architectural characteristics:
 
-- Mostly clean architecture in practice
-- Feature-oriented presentation organization for the visible screens
-- Repository-service layering for local persistence
-- Cubit-based presentation logic rather than event-based Bloc or Riverpod
+- Layer-first, not feature-first.
+- Domain entities are separated from persistence models.
+- Repository interfaces live in `lib/domain/repositories/`.
+- Implementations live in `lib/data/repositories/`.
+- Use cases live in `lib/domain/usecases/`.
+- Cubits generally depend on use cases, not data sources.
+- Some UI code reads use cases directly through `serviceLocator`, such as dashboard summary building.
+- Local data sources have Hive-backed and in-memory variants.
+- App settings and app lock are core services rather than feature modules.
 
 Architecture inconsistencies:
 
-- Category state uses Freezed while transaction, wallet, and settings states use Equatable
-- Some business calculations happen inside screen widgets, especially dashboard and reports totals
-- Budgeting is architecturally present in routing but functionally stubbed
+- The presentation layer can access `serviceLocator` directly from widgets, for example dashboard summary computation.
+- Some user-facing error messages are hardcoded in Cubits rather than routed through localization.
+- There is a global service locator, which is pragmatic but can hide dependency chains.
+- Startup initialization is split between `main.dart` and `MasrofyBootstrapApp`.
 
-Architecture diagram:
-
-```mermaid
-flowchart LR
-    UI[Presentation screens and widgets] --> CUBIT[Cubit state objects]
-    CUBIT --> USECASE[Domain use cases]
-    USECASE --> REPO[Domain repository interfaces]
-    REPO --> DATA[Data repositories]
-    DATA --> DS[Hive data sources]
-    DS --> HIVE[Hive boxes]
-    UI --> THEME[Core theme and tokens]
-    UI --> L10N[Generated localization]
-    UI --> ROUTER[GoRouter]
-    ROUTER --> UI
-```
+Overall architecture is strong for a local-first app, with targeted areas for cleanup rather than a need for wholesale restructuring.
 
 ## 10. Dependency Direction and Module Boundaries
 
-Confirmed boundaries:
+Confirmed intended boundaries:
 
-- Presentation imports domain entities and use cases, not Hive boxes directly
-- Data imports domain entities to map to and from storage models
-- Domain repositories are abstract interfaces
-- Core contains storage bootstrap and app settings storage implementations
+| Layer | Owns | Should depend on | Evidence |
+| --- | --- | --- | --- |
+| Presentation | Screens, widgets, Cubits, UI state | Domain use cases, l10n, theme, routing | `lib/presentation/`, `lib/app/` |
+| Domain | Entities, repository contracts, use cases | Pure Dart and contracts | `lib/domain/` |
+| Data | Models, data sources, repository implementations | Domain contracts/entities, Hive, export libs | `lib/data/` |
+| Core | Cross-cutting storage, settings, security, theme | Platform libraries and package adapters | `lib/core/` |
+| DI | Object graph | All layers | `lib/di/service_locator.dart` |
+| Routing | Route table and shell | Presentation screens and DI for route Cubits | `lib/routing/app_router.dart` |
 
-Cross-feature dependencies:
+Confirmed module boundaries:
 
-- TransactionsCubit depends on WatchCategories to populate the category chooser in the add-transaction sheet
-- WalletBalancesCubit depends on TransactionRepository and WalletBalanceRepository to compute current wallet balances
-- Settings screen pushes to category and wallet-balance management routes
+- `TransactionRepositoryImpl`, `CategoryRepositoryImpl`, `BudgetRepositoryImpl`, and `WalletBalanceRepositoryImpl` implement domain repository interfaces.
+- Use cases such as `SaveTransaction`, `SaveBudget`, and `BuildReport` operate on domain entities and repository contracts.
+- Hive-specific persistence is isolated under `lib/data/datasources/` and `lib/core/storage/`.
 
-No circular dependency was identified in the inspected files.
+Boundary risks:
+
+- Direct service locator usage in screens makes dependencies less explicit.
+- UI and Cubits contain some business-facing validation/error text.
+- `BackupRestoreService` spans multiple repositories and settings stores by design; future changes must trace all persistence flows.
 
 ## 11. Complete Feature Inventory
 
 Feature matrix:
 
-| Feature | Main files | State management | Data source | Status | Notes |
-|---|---|---|---|---|---|
-| Dashboard | [lib/presentation/screens/dashboard/dashboard_screen.dart](lib/presentation/screens/dashboard/dashboard_screen.dart), [lib/presentation/widgets/transactions/transaction_list_tile.dart](lib/presentation/widgets/transactions/transaction_list_tile.dart) | TransactionsCubit | Transactions stream + categories stream | Mostly complete | Calculates today/week/month summaries in the screen |
-| History | [lib/presentation/screens/history/history_screen.dart](lib/presentation/screens/history/history_screen.dart) | TransactionsCubit | Transactions stream + categories stream | Mostly complete | Groups transactions by day and supports delete |
-| Reports | [lib/presentation/screens/reports/reports_screen.dart](lib/presentation/screens/reports/reports_screen.dart) | TransactionsCubit | Transactions stream | Mostly complete | Category-based expense aggregation |
-| Budgets | [lib/presentation/screens/budgets/budgets_screen.dart](lib/presentation/screens/budgets/budgets_screen.dart) | None | None | Placeholder | Empty state only |
-| Settings | [lib/presentation/screens/settings/settings_screen.dart](lib/presentation/screens/settings/settings_screen.dart) | AppSettingsCubit | Hive-backed settings store | Mostly complete | Locale, theme, and entry points to subfeatures |
-| Categories management | [lib/presentation/screens/settings/categories/categories_screen.dart](lib/presentation/screens/settings/categories/categories_screen.dart) | CategoriesCubit | Category repository + Hive | Mostly complete | Built-in and custom categories, visibility, default wallet |
-| Wallet balances | [lib/presentation/screens/settings/wallets/wallet_balances_screen.dart](lib/presentation/screens/settings/wallets/wallet_balances_screen.dart) | WalletBalancesCubit | Wallet and transaction repositories | Mostly complete | Tracks InstaPay and Vodafone Cash only |
-| Add transaction sheet | [lib/presentation/widgets/transactions/add_transaction_sheet.dart](lib/presentation/widgets/transactions/add_transaction_sheet.dart) | TransactionsCubit + local widget state | Transaction use case | Mostly complete | Local form state lives in the widget |
-| Startup seeding | [lib/data/catalog/default_category_catalog.dart](lib/data/catalog/default_category_catalog.dart), [lib/data/seed/provided_expenses_importer.dart](lib/data/seed/provided_expenses_importer.dart) | None | Hive repositories | Mostly complete | Default categories are seeded; demo expenses are imported once |
-| Localization | [lib/l10n/app_ar.arb](lib/l10n/app_ar.arb), [lib/l10n/app_en.arb](lib/l10n/app_en.arb) | AppSettingsCubit | Generated localization | Complete | Arabic and English |
-| Theme system | [lib/core/theme/app_theme.dart](lib/core/theme/app_theme.dart) | AppSettingsCubit | Hive-backed settings store | Mostly complete | Material 3 with semantic extension colors |
-
-Major feature details:
+| Feature | Main Files | State Management | Data Source | Status | Notes |
+| --- | --- | --- | --- | --- | --- |
+| Dashboard | `lib/presentation/screens/dashboard/dashboard_screen.dart` | `TransactionsCubit`, direct `BuildDashboardSummary` use case | Local transactions/categories | Mostly complete | Summary and recent transactions are connected; runtime UI polish not verified on device. |
+| Transactions | `lib/presentation/widgets/transactions/add_transaction_sheet.dart`, `lib/presentation/cubits/transactions/transactions_cubit.dart` | `TransactionsCubit`, local widget state | Hive transaction/category data sources | Mostly complete | Add/edit/delete and filters are covered by tests. |
+| History | `lib/presentation/screens/history/history_screen.dart` | `TransactionsCubit` | Local transactions/categories | Mostly complete | Search/filter/grouping present. |
+| Categories | `lib/presentation/screens/settings/categories/categories_screen.dart` | `CategoriesCubit` | Local category data source | Mostly complete | Default and custom categories, visibility, wallet defaults. |
+| Budgets | `lib/presentation/screens/budgets/budgets_screen.dart` | `BudgetsCubit` | Local budgets/transactions/categories | Mostly complete | Monthly budget progress and validation present. |
+| Reports | `lib/presentation/screens/reports/reports_screen.dart` | `ReportsCubit` | Local transactions/categories | Mostly complete | Charts, filters, PDF/Excel export connected. |
+| Wallet Balances | `lib/presentation/screens/settings/wallet_balances_screen.dart` | `WalletBalancesCubit` | Local wallet balances/transactions | Mostly complete | Tracks InstaPay and Vodafone Cash; cash exists but is not a tracked balance. |
+| Settings | `lib/presentation/screens/settings/settings_screen.dart` | `AppSettingsCubit`, `AppLockCubit`, local widget state | Settings store, backup/export services | Mostly complete | Mobile/web file import UX needs work. |
+| App Lock | `lib/core/security/app_lock_service.dart`, `lib/presentation/security/app_lock_gate.dart` | `AppLockCubit` | Secure storage | Partially implemented | PIN flow exists; biometric flag exists but biometric auth not detected. |
+| Backup/Restore | `lib/data/backup/backup_restore_service.dart` | Called from Settings UI | Local repositories/settings store | Mostly complete | Backup validation and rollback covered by tests; file picker not detected. |
+| Export | `lib/data/export/` | Called from Reports/Settings UI | Local data | Mostly complete | Excel/PDF export present; PDF font download fallback needs runtime/offline verification. |
+| Startup Failure | `lib/app/masrofy_bootstrap_app.dart` | Local bootstrap future | Storage/DI | Mostly complete | Handles bootstrap-widget failures, but pre-`runApp` failure cannot show UI. |
 
 ### Dashboard
 
-Purpose: show current financial summary and recent transactions.
+**Purpose**
 
-User entry points: dashboard branch in bottom navigation.
+Show financial summaries for today, current week, current month, and recent transactions.
 
-Main screens: DashboardScreen.
+**User entry points**
 
-Routes: /dashboard.
+Initial route `/dashboard` and first bottom navigation tab.
 
-State management: TransactionsCubit.
+**Main screens**
 
-Services and repositories: WatchTransactions, WatchCategories.
+`DashboardScreen` in `lib/presentation/screens/dashboard/dashboard_screen.dart`.
 
-Models: FinancialTransaction, Category.
+**Routes**
 
-Local persistence: transactions_v1 and categories_v1 Hive boxes.
+`AppRoutes.dashboard` mapped to `/dashboard`.
 
-Implementation status: mostly complete.
+**State management**
 
-Known issues or risks: summaries are recomputed in the widget tree each rebuild; no pagination.
+Global `TransactionsCubit` provided by `MasrofyApp`. Dashboard also retrieves `BuildDashboardSummary` from `serviceLocator`.
 
-Important files: [lib/presentation/screens/dashboard/dashboard_screen.dart](lib/presentation/screens/dashboard/dashboard_screen.dart), [lib/presentation/widgets/transactions/transaction_formatters.dart](lib/presentation/widgets/transactions/transaction_formatters.dart)
+**Services and repositories**
+
+`BuildDashboardSummary`, transaction repository, category repository.
+
+**Models**
+
+`DashboardSummary`, `FinancialTransaction`, `Category`.
+
+**Remote data sources**
+
+Not detected in the current repository.
+
+**Local persistence**
+
+Hive transactions and categories.
+
+**Permissions**
+
+None detected.
+
+**Third-party integrations**
+
+Not detected beyond Flutter UI dependencies.
+
+**Implementation status**
+
+Mostly complete. Requires runtime UI verification for layout and responsive behavior.
+
+**Dependencies**
+
+Transactions and categories must be loaded.
+
+**Known issues or risks**
+
+Direct use case lookup through `serviceLocator` inside UI increases coupling and can recompute on rebuild.
+
+**Important files**
+
+`lib/presentation/screens/dashboard/dashboard_screen.dart`, `lib/domain/usecases/dashboard/build_dashboard_summary.dart`, `lib/presentation/cubits/transactions/transactions_cubit.dart`.
+
+### Transactions and Add/Edit Flow
+
+**Purpose**
+
+Create, update, delete, and list income/expense records.
+
+**User entry points**
+
+Floating action button in `MainShell`, dashboard recent items, and history screen.
+
+**Main screens**
+
+`AddTransactionSheet`, transaction list tiles, transaction detail sheets, dashboard/history screens.
+
+**Routes**
+
+No dedicated route for transaction editor; it appears as modal UI from shell/history/dashboard flows.
+
+**State management**
+
+`TransactionsCubit`, local `StatefulWidget` form state, stream subscriptions to transactions and categories.
+
+**Services and repositories**
+
+`WatchTransactions`, `WatchCategories`, `SaveTransaction`, `DeleteTransaction`, `TransactionRepository`, `CategoryRepository`.
+
+**Models**
+
+`FinancialTransaction`, `TransactionFilter`, `Category`, `WalletType`.
+
+**Remote data sources**
+
+Not detected in the current repository.
+
+**Local persistence**
+
+Hive transactions and categories.
+
+**Permissions**
+
+None detected.
+
+**Third-party integrations**
+
+`uuid` for generated IDs.
+
+**Implementation status**
+
+Mostly complete. Unit and widget tests cover saving, filtering, debounced search, list tile deletion confirmation, and history grouping.
+
+**Dependencies**
+
+Requires category data for category selection and display.
+
+**Known issues or risks**
+
+`SaveTransaction` validates amount and category ID presence, but does not verify that the category exists or that the transaction type matches the category. UI generally constrains choices, but direct restore or future callers can create dangling references unless separately validated.
+
+**Important files**
+
+`lib/presentation/widgets/transactions/add_transaction_sheet.dart`, `lib/presentation/cubits/transactions/transactions_cubit.dart`, `lib/domain/usecases/transactions/save_transaction.dart`, `lib/domain/usecases/transactions/delete_transaction.dart`.
 
 ### History
 
-Purpose: browse transaction history grouped by day and delete entries.
+**Purpose**
 
-User entry points: history branch and bottom navigation.
+Browse and filter historical transactions.
 
-Main screens: HistoryScreen.
+**User entry points**
 
-Routes: /history.
+Bottom navigation tab `/history`.
 
-State management: TransactionsCubit.
+**Main screens**
 
-Implementation status: mostly complete.
+`HistoryScreen`.
 
-Known issues or risks: grouping is performed on every rebuild; no filtering or search.
+**Routes**
 
-### Reports
+`AppRoutes.history` mapped to `/history`.
 
-Purpose: aggregate expenses by category and show ratios.
+**State management**
 
-Routes: /reports.
+Global `TransactionsCubit` plus local filter UI state.
 
-Implementation status: mostly complete.
+**Services and repositories**
 
-Known issues or risks: no charting despite fl_chart being declared; the screen is purely textual/progress-based.
+Same transaction/category use cases as the transaction feature.
+
+**Models**
+
+`TransactionFilter`, `TransactionDayGroup`, `FinancialTransaction`, `Category`.
+
+**Remote data sources**
+
+Not detected in the current repository.
+
+**Local persistence**
+
+Hive transaction and category boxes.
+
+**Permissions**
+
+None detected.
+
+**Third-party integrations**
+
+Not detected.
+
+**Implementation status**
+
+Mostly complete. Tests cover debounced search and grouped history behavior.
+
+**Dependencies**
+
+Transactions and categories.
+
+**Known issues or risks**
+
+No pagination was detected; very large local transaction histories may need list performance review.
+
+**Important files**
+
+`lib/presentation/screens/history/history_screen.dart`, `lib/presentation/models/transaction_day_group.dart`.
+
+### Categories
+
+**Purpose**
+
+Manage default and custom income/expense categories, hide categories, and assign default wallets.
+
+**User entry points**
+
+Settings route `/settings/categories`.
+
+**Main screens**
+
+`CategoriesScreen` and category editor widgets.
+
+**Routes**
+
+`AppRoutes.categories` mapped to `/settings/categories`.
+
+**State management**
+
+Route-scoped `CategoriesCubit`.
+
+**Services and repositories**
+
+`InitializeDefaultCategories`, `WatchCategories`, `SaveCustomCategory`, `SetCategoryVisibility`, `SetCategoryDefaultWallet`, `CategoryRepository`.
+
+**Models**
+
+`Category`, `CategoryModel`, `TransactionType`, `WalletType`, `CategoryBehavior`.
+
+**Remote data sources**
+
+Not detected in the current repository.
+
+**Local persistence**
+
+Hive category box.
+
+**Permissions**
+
+None detected.
+
+**Third-party integrations**
+
+`freezed`, `json_serializable`, `uuid`.
+
+**Implementation status**
+
+Mostly complete. Tests cover default catalog, custom category validation, visibility, default wallets, DI, Cubit behavior, and screen UI.
+
+**Dependencies**
+
+Transactions and budgets depend on category IDs.
+
+**Known issues or risks**
+
+Deleting categories is not exposed; hiding preserves references. This is safe for history but may need product confirmation.
+
+**Important files**
+
+`lib/data/catalog/default_category_catalog.dart`, `lib/presentation/cubits/categories/categories_cubit.dart`, `lib/presentation/screens/settings/categories/categories_screen.dart`.
 
 ### Budgets
 
-Purpose: future budget functionality.
+**Purpose**
 
-Routes: /budgets.
+Create and monitor monthly expense budgets by category.
 
-Implementation status: placeholder.
+**User entry points**
 
-Known issues or risks: reachable route but no budgeting logic exists.
+Bottom navigation tab `/budgets`.
 
-### Settings
+**Main screens**
 
-Purpose: change language, theme, and navigate to category/wallet management.
+`BudgetsScreen`.
 
-Routes: /settings.
+**Routes**
 
-State management: AppSettingsCubit.
+`AppRoutes.budgets` mapped to `/budgets`.
 
-Implementation status: mostly complete.
+**State management**
 
-### Category management
+Route-scoped `BudgetsCubit`.
 
-Purpose: inspect built-in categories, create custom categories, change visibility, and select a default wallet.
+**Services and repositories**
 
-Routes: /settings/categories.
+`WatchBudgets`, `GetBudgetsForMonth`, `SaveBudget`, `DeleteBudget`, `CalculateBudgetProgress`, budget/category/transaction repositories.
 
-State management: CategoriesCubit.
+**Models**
 
-Implementation status: mostly complete.
+`Budget`, `BudgetPeriod`, `BudgetProgress`, `Category`, `FinancialTransaction`.
 
-Known issues or risks: custom categories are persisted locally only; business rules are enforced in use cases, which is good, but the screen still holds save orchestration logic.
+**Remote data sources**
 
-### Wallet balances
+Not detected in the current repository.
 
-Purpose: edit the current balance for supported digital wallets and recompute current balance from transactions.
+**Local persistence**
 
-Routes: /settings/wallet-balances.
+Hive budgets, transactions, categories.
 
-State management: WalletBalancesCubit.
+**Permissions**
 
-Implementation status: mostly complete.
+None detected.
 
-Known issues or risks: only InstaPay and Vodafone Cash are tracked in the summary calculator; cash is not part of wallet balance summaries.
+**Third-party integrations**
 
-### Add transaction sheet
+Not detected beyond app dependencies.
 
-Purpose: create a new transaction with amount, category, wallet, note, date, and optional person name.
+**Implementation status**
 
-Implementation status: mostly complete.
+Mostly complete. Tests cover budget use cases, Cubit, and screen behavior.
 
-Known issues or risks: category selection depends on the currently loaded category stream; form state is local and impermanent until save.
+**Dependencies**
+
+Expense categories and expense transactions.
+
+**Known issues or risks**
+
+Budgets are category/month based and duplicate active budgets are rejected. Future category deletion or merge logic must preserve budget references.
+
+**Important files**
+
+`lib/presentation/cubits/budgets/budgets_cubit.dart`, `lib/domain/usecases/budgets/`, `lib/presentation/screens/budgets/budgets_screen.dart`.
+
+### Reports and Export
+
+**Purpose**
+
+Display filtered financial summaries, charts, comparisons, and export reports/transactions.
+
+**User entry points**
+
+Bottom navigation tab `/reports`, settings export actions.
+
+**Main screens**
+
+`ReportsScreen`.
+
+**Routes**
+
+`AppRoutes.reports` mapped to `/reports`.
+
+**State management**
+
+Route-scoped `ReportsCubit`.
+
+**Services and repositories**
+
+`BuildReport`, `DataExportService`, `TransactionExcelExporter`, `ReportPdfExporter`, `LocalExportWriter`.
+
+**Models**
+
+`ReportFilter`, `ReportData`, `ReportSummary`, `CategoryReportSlice`, `ReportTimeSeriesPoint`, `FinancialTransaction`, `Category`.
+
+**Remote data sources**
+
+Not detected in the current repository.
+
+**Local persistence**
+
+Reads local transactions/categories; writes export files to app documents via `path_provider`.
+
+**Permissions**
+
+No explicit runtime permissions detected.
+
+**Third-party integrations**
+
+`fl_chart`, `excel`, `pdf`, `printing`, `path_provider`.
+
+**Implementation status**
+
+Mostly complete. Tests cover report building, report screen rendering, Excel export, and PDF export.
+
+**Dependencies**
+
+Transactions and categories.
+
+**Known issues or risks**
+
+PDF font loading uses `PdfGoogleFonts`; tests showed warnings when Google Fonts download failed, with Helvetica fallback and Unicode support warnings. Arabic PDF output needs offline/runtime verification.
+
+**Important files**
+
+`lib/presentation/screens/reports/reports_screen.dart`, `lib/presentation/cubits/reports/reports_cubit.dart`, `lib/data/export/`, `lib/domain/usecases/reports/build_report.dart`.
+
+### Wallet Balances
+
+**Purpose**
+
+Track current balance for selected wallets by combining a stored base balance with transaction deltas.
+
+**User entry points**
+
+Settings route `/settings/wallet-balances`.
+
+**Main screens**
+
+`WalletBalancesScreen`.
+
+**Routes**
+
+`AppRoutes.walletBalances` mapped to `/settings/wallet-balances`.
+
+**State management**
+
+Route-scoped `WalletBalancesCubit`.
+
+**Services and repositories**
+
+`SetWalletCurrentBalance`, `WatchTransactions`, `WalletBalanceRepository`.
+
+**Models**
+
+`WalletBalance`, `WalletBalanceSummary`, `WalletType`, `FinancialTransaction`.
+
+**Remote data sources**
+
+Not detected in the current repository.
+
+**Local persistence**
+
+Hive wallet balances and transactions.
+
+**Permissions**
+
+None detected.
+
+**Third-party integrations**
+
+Not detected.
+
+**Implementation status**
+
+Mostly complete.
+
+**Dependencies**
+
+Transactions determine wallet deltas. `trackedWalletTypes` includes InstaPay and Vodafone Cash.
+
+**Known issues or risks**
+
+`WalletBalancesCubit` can emit ready state when either balances or transactions stream emits. Without explicit readiness flags, an initial partial snapshot may show temporary zero/incorrect summaries until both streams emit.
+
+**Important files**
+
+`lib/presentation/cubits/wallets/wallet_balances_cubit.dart`, `lib/domain/usecases/wallets/`, `lib/presentation/screens/settings/wallet_balances_screen.dart`.
+
+### Settings, Preferences, Backup, and Reset
+
+**Purpose**
+
+Manage locale, theme, privacy masking, app lock, backup/restore/export, and destructive local-data reset.
+
+**User entry points**
+
+Bottom navigation tab `/settings`.
+
+**Main screens**
+
+`SettingsScreen`.
+
+**Routes**
+
+`AppRoutes.settings` mapped to `/settings`.
+
+**State management**
+
+`AppSettingsCubit`, `AppLockCubit`, local UI state.
+
+**Services and repositories**
+
+`AppSettingsStore`, `BackupRestoreService`, `DataExportService`, app lock service, repositories.
+
+**Models**
+
+`AppSettingsState`, `AppSettingsSnapshot`, backup payload structures, domain entities.
+
+**Remote data sources**
+
+Not detected in the current repository.
+
+**Local persistence**
+
+Hive settings box, secure storage for app lock, all local data boxes for backup/reset.
+
+**Permissions**
+
+No explicit permissions detected.
+
+**Third-party integrations**
+
+`path_provider`, `pdf`, `printing`, `excel`.
+
+**Implementation status**
+
+Mostly complete for local platforms. Web/mobile file restore UX is partially implemented because restore asks the user for a file path instead of using a file picker.
+
+**Dependencies**
+
+All repositories and settings storage.
+
+**Known issues or risks**
+
+`settings_screen.dart` imports and uses `dart:io File`, which is not compatible with Flutter web builds. Manual path entry is also not a typical mobile restore workflow.
+
+**Important files**
+
+`lib/presentation/screens/settings/settings_screen.dart`, `lib/presentation/cubits/settings/app_settings_cubit.dart`, `lib/data/backup/backup_restore_service.dart`, `lib/data/export/data_export_service.dart`.
+
+### App Lock and Privacy Masking
+
+**Purpose**
+
+Protect the app with a local PIN and optionally hide financial amounts.
+
+**User entry points**
+
+Settings app-lock controls, app lifecycle/resume, root `AppLockGate`, shell reveal/hide action.
+
+**Main screens**
+
+App-lock UI under `lib/presentation/security/` and settings controls.
+
+**Routes**
+
+No dedicated route detected; app lock wraps app content.
+
+**State management**
+
+`AppLockCubit`, `AppSettingsCubit`.
+
+**Services and repositories**
+
+`AppLockService`, `SecureValueStore`, `AppSettingsStore`.
+
+**Models**
+
+`AppLockState`, `AppSettingsState`.
+
+**Remote data sources**
+
+Not detected in the current repository.
+
+**Local persistence**
+
+Secure storage for PIN hash/salt/flags/lockout metadata; Hive settings for privacy masking.
+
+**Permissions**
+
+No biometric runtime permission or biometric plugin detected.
+
+**Third-party integrations**
+
+`flutter_secure_storage`, `crypto`.
+
+**Implementation status**
+
+PIN app lock is mostly complete. Biometric support is partial/placeholder because a biometric setting exists but actual biometric authentication was not detected.
+
+**Dependencies**
+
+Secure storage availability and lifecycle events.
+
+**Known issues or risks**
+
+`FlutterSecureValueStore` falls back to in-memory storage on platform errors or missing plugin exceptions, which means secure values may not be durable or secure on unsupported/misconfigured platforms. Requires target-platform verification.
+
+**Important files**
+
+`lib/core/security/app_lock_service.dart`, `lib/core/security/secure_value_store.dart`, `lib/presentation/cubits/security/app_lock_cubit.dart`, `lib/presentation/security/app_lock_gate.dart`.
 
 ## 12. Main User Journeys
 
-Confirmed flows:
+Fresh installation:
 
-- Fresh install: startup initializes Hive, registers dependencies, seeds default categories, and opens the dashboard.
-- Authenticated startup: not applicable; no auth exists.
-- Unauthenticated startup: not applicable; no auth exists.
-- Dashboard browsing: default shell opens on /dashboard.
-- Add transaction: floating action button opens a bottom sheet, validates input, saves locally, and closes on success.
-- History browsing: transactions are grouped by day and can be deleted.
-- Reports browsing: expenses are aggregated by category.
-- Category management: user can switch expense/income type, hide/show categories, choose default wallets, and add custom categories.
-- Wallet balance management: user can set a current balance per tracked wallet; transactions update the current value.
-- Locale/theme changes: settings are persisted in Hive and reflected across the app.
-- Unknown route: NotFoundScreen renders.
+1. App starts from `lib/main.dart`.
+2. Storage bootstrap opens metadata, quarantine, legacy, and current Hive boxes.
+3. Encryption key is created or reused through secure storage.
+4. Storage migration/validation runs.
+5. DI registers stores, repositories, use cases, Cubits, and router.
+6. Default categories are initialized.
+7. `MasrofyApp` loads settings, app lock state, and transactions.
+8. GoRouter opens `/dashboard`.
 
-Not detected:
+Main transaction journey:
 
-- Login, registration, password reset, OTP, social login, logout, premium gating, deep-link auth redirects.
+1. User taps shell FAB.
+2. `AddTransactionSheet` opens.
+3. User selects type, amount, category, date, wallet, optional person/note.
+4. `TransactionsCubit.save()` calls `SaveTransaction`.
+5. Repository persists a `FinancialTransactionModel` JSON string in Hive.
+6. Watch streams emit and UI refreshes dashboard/history/reports as applicable.
+
+Budget journey:
+
+1. User opens `/budgets`.
+2. `BudgetsCubit` loads selected month budgets, all transactions, and expense categories.
+3. User creates or edits category budget.
+4. `SaveBudget` validates amount, category existence/type, and duplicate active budgets.
+5. Progress is recalculated from expense transactions in the period.
+
+Report/export journey:
+
+1. User opens `/reports`.
+2. `ReportsCubit` builds `ReportData` from transactions and categories.
+3. User adjusts filters.
+4. Charts and summaries update.
+5. User exports PDF or Excel.
+6. Export service writes local files and PDF can be shared through `printing`.
+
+Backup/restore journey:
+
+1. User opens Settings.
+2. Backup exports versioned JSON from repositories and safe settings.
+3. Restore decodes and validates backup.
+4. Merge or replace mode is applied.
+5. On failure during write, restore rolls back previous state.
+
+App-lock journey:
+
+1. User enables PIN in settings.
+2. PIN is validated and stored as salted hash through `AppLockService`.
+3. `AppLockGate` observes lifecycle.
+4. On cold start or after privacy timeout, app locks.
+5. User unlocks with PIN; failed attempts can cause lockout.
+
+Auth-related journeys:
+
+Login, registration, logout, password recovery, remote session restoration, premium flows, notifications, and deep links are not detected in the current repository.
 
 ## 13. State Management
 
-Confirmed techniques:
-
-- flutter_bloc Cubits
-- Equatable state classes
-- Freezed immutable state for category management
-- Local StatefulWidget state for forms and dialogs
+Primary state management is Cubit-based, using `flutter_bloc`. Local widget state is also used for forms, filters, and dialogs.
 
 Inventory:
 
-| System | Where initialized | Names | State shape | Persistence | Notes |
-|---|---|---|---|---|---|
-| AppSettingsCubit | GetIt singleton, injected into MasrofyApp | AppSettingsCubit, AppSettingsState | locale + themeMode | Hive settings_v1 | Persists user preferences immediately on change |
-| TransactionsCubit | Created in MasrofyApp and route providers | TransactionsCubit, TransactionsState | status, transactions, categories, isSaving, errorMessage | Hive via repos | Subscribes to two streams and owns cancellation |
-| CategoriesCubit | Created for /settings/categories route | CategoriesCubit, CategoriesState | status, categories, selectedType, isSaving, error | Hive via repos | Handles loading, mutation, and error mapping |
-| WalletBalancesCubit | Created for /settings/wallet-balances route | WalletBalancesCubit, WalletBalancesState | status, summaries, isSaving, errorMessage | Hive via repos | Recomputes summaries from balance and transaction streams |
-| Local form state | Widget-local | AddTransactionSheet, CategoryEditorSheet, WalletBalanceDialog | controllers, selections, date | None | Ephemeral UI state only |
+| Component | State Class | Initialized | Lifetime | Dependencies | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `TransactionsCubit` | `TransactionsState` | `MasrofyApp` | App-wide provider | Watch/save/delete transaction/category use cases | Watches transactions and categories; includes filters and debounced search. |
+| `CategoriesCubit` | Freezed category state | Categories route | Route-scoped | Category use cases | Handles selected type, loading, visibility, custom category operations. |
+| `BudgetsCubit` | Budget state | Budgets route | Route-scoped | Budget/category/transaction use cases | Waits for multiple streams before calculated state. |
+| `ReportsCubit` | Report state | Reports route | Route-scoped | `BuildReport`, watch transactions/categories | Rebuilds report when filters or source streams change. |
+| `WalletBalancesCubit` | Wallet state | Wallet route | Route-scoped | Wallet and transaction use cases | Combines balances and transaction deltas. |
+| `AppSettingsCubit` | `AppSettingsState` | GetIt lazy singleton, provided by root app | App-wide singleton | `AppSettingsStore` | Persists locale/theme/privacy; temporary reveal uses timer. |
+| `AppLockCubit` | `AppLockState` | Root app provider | App-wide provider instance | `AppLockService` | Handles setup, unlock, lockout, lifecycle locks. |
 
-Notable state risks:
+Other state mechanisms:
 
-- TransactionsCubit keeps both transactions and categories in state, which is fine but broadens rebuild scope.
-- CategoriesCubit and WalletBalancesCubit each maintain stream subscriptions and must be disposed, which they do.
-- Dashboard and Reports also compute totals in widget build methods rather than delegating to dedicated presentation models.
+- Streams from local data sources via Hive box watches or in-memory controllers.
+- Local `StatefulWidget` state in form screens/dialogs.
+- GoRouter shell state for tab navigation.
+- `Timer` in `AppSettingsCubit` for temporary financial amount reveal.
+
+Potential state issues:
+
+- `TransactionsCubit` can mark status ready as streams emit independently; category data can lag transaction data.
+- `WalletBalancesCubit` does not appear to track readiness of both source streams before emitting ready.
+- Some Cubits map exceptions to localized-looking Arabic literals instead of using `AppLocalizations`.
+- Global singleton settings Cubit is appropriate for app-wide preferences, but future tests must reset GetIt carefully.
+
+No Riverpod, Provider, ChangeNotifier app state, GetX, MobX, Redux, or Hooks were detected as primary state systems.
 
 ## 14. Navigation and Routing
 
-Navigation package: go_router.
+Navigation package: `go_router`
 
-Route structure:
+Root router:
 
-| Route | Screen | Parameters | Guard | Entry source | Notes |
-|---|---|---|---|---|---|
-| /dashboard | DashboardScreen | none | none | Initial location, bottom nav branch | Default startup route |
-| /history | HistoryScreen | none | none | Bottom nav branch | Transaction list by date |
-| /reports | ReportsScreen | none | none | Bottom nav branch | Expense aggregation |
-| /budgets | BudgetsScreen | none | none | Bottom nav branch | Placeholder |
-| /settings | SettingsScreen | none | none | Bottom nav branch | Theme/language/settings hub |
-| /settings/categories | CategoriesScreen | none | none | Settings tile | Top-level route outside the shell branch |
-| /settings/wallet-balances | WalletBalancesScreen | none | none | Settings tile | Top-level route outside the shell branch |
+- `AppRouter` in `lib/routing/app_router.dart`
+- Registered by GetIt in `lib/di/service_locator.dart`
+- Consumed by `MasrofyApp`
 
-Confirmed routing features:
+Route table:
 
-- StatefulShellRoute.indexedStack for the five main tabs
-- Bottom NavigationBar driven by StatefulNavigationShell
-- errorBuilder for unknown routes
-- No redirects, no auth guards, no query or path parameters, no navigation observers
+| Route | Screen | Parameters | Guard | Entry Source | Notes |
+| --- | --- | --- | --- | --- | --- |
+| `/dashboard` | `DashboardScreen` | None | None | Initial route, shell tab | Initial location. |
+| `/history` | `HistoryScreen` | None | None | Shell tab | Uses global `TransactionsCubit`. |
+| `/reports` | `ReportsScreen` | None | None | Shell tab | Route provides `ReportsCubit`. |
+| `/budgets` | `BudgetsScreen` | None | None | Shell tab | Route provides `BudgetsCubit`. |
+| `/settings` | `SettingsScreen` | None | None | Shell tab | Settings hub. |
+| `/settings/categories` | `CategoriesScreen` | None | None | Settings link | Route provides `CategoriesCubit`. |
+| `/settings/wallet-balances` | `WalletBalancesScreen` | None | None | Settings link | Route provides `WalletBalancesCubit`. |
+| Unknown route | `NotFoundScreen` | N/A | N/A | `errorBuilder` | Handles routing errors. |
 
-Navigation flow diagram:
+Navigation diagram:
 
 ```mermaid
-flowchart LR
-    A[GoRouter] --> B[Stateful shell]
-    B --> C[Dashboard]
-    B --> D[History]
-    B --> E[Reports]
-    B --> F[Budgets placeholder]
-    B --> G[Settings]
-    G --> H[Categories management]
-    G --> I[Wallet balances]
-    A --> J[NotFoundScreen]
+flowchart TD
+    Router[GoRouter initial /dashboard] --> Shell[StatefulShellRoute.indexedStack]
+    Shell --> Dashboard[/dashboard DashboardScreen]
+    Shell --> History[/history HistoryScreen]
+    Shell --> Reports[/reports ReportsScreen + ReportsCubit]
+    Shell --> Budgets[/budgets BudgetsScreen + BudgetsCubit]
+    Shell --> Settings[/settings SettingsScreen]
+    Settings --> Categories[/settings/categories CategoriesScreen + CategoriesCubit]
+    Settings --> Wallets[/settings/wallet-balances WalletBalancesScreen + WalletBalancesCubit]
+    Router --> NotFound[NotFoundScreen via errorBuilder]
 ```
 
-Potential navigation risks:
+Confirmed:
 
-- No redirect logic exists for future auth or premium flows
-- Settings routes are pushed outside the shell, so back behavior depends on the stack created by push
-- Budgets route exists but leads to a placeholder screen, which is easy to misread as feature-complete
+- Uses `StatefulShellRoute.indexedStack`.
+- Uses bottom `NavigationBar` on smaller widths and `NavigationRail` on wider layouts in `MainShell`.
+- No route guards, auth redirects, path parameters, or query parameter handling detected.
+- No navigation observers detected.
+- Route transitions use fade/slide behavior and check reduced motion.
+
+Not detected:
+
+- Login/registration routes.
+- Notification routes.
+- Deep link parameter handling beyond web path URL strategy.
+- Universal links/dynamic links.
+- Premium/payment navigation.
 
 ## 15. Dependency Injection and Service Registration
 
-Mechanism: GetIt singleton instance in [lib/di/service_locator.dart](lib/di/service_locator.dart).
+Dependency mechanism: `get_it`
 
-Registration order:
+Registration file: `lib/di/service_locator.dart`
 
-1. Create Hive-backed or in-memory settings store/data sources depending on box availability
-2. Register repositories
-3. Register use cases
-4. Register Cubits
-5. Register AppRouter and GoRouter
-6. Seed default categories
-7. Import provided expenses if the transactions box is open
+Registration sequence:
+
+1. Secure value store.
+2. App lock service.
+3. App settings store.
+4. Local data sources.
+5. Repositories.
+6. Use cases.
+7. Backup/export services.
+8. Cubit factories/singletons.
+9. Router.
+10. Default category initialization.
 
 Dependency table:
 
 | Dependency | Type | Registration | Consumers | Lifetime | Notes |
-|---|---|---|---|---|---|
-| AppSettingsStore | singleton | registerSingleton | AppSettingsCubit | app lifetime | Hive-backed or in-memory fallback |
-| CategoryLocalDataSource | singleton | registerSingleton | CategoryRepositoryImpl | app lifetime | Hive-backed or in-memory fallback |
-| TransactionLocalDataSource | singleton | registerSingleton | TransactionRepositoryImpl | app lifetime | Hive-backed or in-memory fallback |
-| WalletBalanceLocalDataSource | singleton | registerSingleton | WalletBalanceRepositoryImpl | app lifetime | Hive-backed or in-memory fallback |
-| CategoryRepository | lazy singleton | registerLazySingleton | category use cases and cubit | app lifetime | Local only |
-| TransactionRepository | lazy singleton | registerLazySingleton | transaction use cases and cubits | app lifetime | Local only |
-| WalletBalanceRepository | lazy singleton | registerLazySingleton | wallet balance use cases and cubit | app lifetime | Local only |
-| Use cases | lazy singletons | registerLazySingleton | Cubits | app lifetime | Thin wrappers around repositories |
-| CategoriesCubit | factory | registerFactory | Categories route | per route instance | Separate instance per route open |
-| TransactionsCubit | factory | registerFactory | App shell | per app tree instance | Loaded in MasrofyApp |
-| WalletBalancesCubit | factory | registerFactory | Wallet balances route | per route instance | Separate instance per route open |
-| AppSettingsCubit | lazy singleton | registerLazySingleton | App shell and settings screen | app lifetime | Persistent preference state |
-| AppRouter and GoRouter | lazy singleton | registerLazySingleton | MasrofyApp | app lifetime | Router reused globally |
+| --- | --- | --- | --- | --- | --- |
+| `SecureValueStore` | Core service | Singleton | `AppLockService`, storage encryption | Singleton | Uses `FlutterSecureValueStore`. |
+| `AppLockService` | Core service | Lazy singleton | `AppLockCubit` | Singleton | PIN hashing, lockout, privacy timeout. |
+| `AppSettingsStore` | Core store | Singleton | `AppSettingsCubit`, backup/restore | Singleton | Hive when box open, in-memory fallback otherwise. |
+| Category data source | Data source | Singleton | `CategoryRepositoryImpl` | Singleton | Hive when available, in-memory fallback. |
+| Transaction data source | Data source | Singleton | `TransactionRepositoryImpl` | Singleton | Hive/in-memory variants. |
+| Wallet data source | Data source | Singleton | `WalletBalanceRepositoryImpl` | Singleton | Hive/in-memory variants. |
+| Budget data source | Data source | Singleton | `BudgetRepositoryImpl` | Singleton | Hive/in-memory variants. |
+| Repositories | Data implementations | Lazy singletons | Use cases | Singleton | Implement domain contracts. |
+| Use cases | Domain services | Lazy singletons | Cubits/UI/services | Singleton | Business logic entry points. |
+| `DataExportService` | Data service | Lazy singleton | Reports/settings | Singleton | Excel/PDF export. |
+| `BackupRestoreService` | Data service | Lazy singleton | Settings | Singleton | Backup/restore/reset. |
+| `AppSettingsCubit` | Cubit | Lazy singleton | Root app | Singleton | App-wide preferences. |
+| Feature Cubits | Cubit | Factory | Routes/root providers | Per provider | Transactions/AppLock created by root app; others route scoped. |
+| `GoRouter` | Router | Lazy singleton | `MasrofyApp` | Singleton | Built through `AppRouter`. |
 
-Observations:
+DI risks:
 
-- The code defensively resets GetIt if a category data source is already registered.
-- Hive boxes are not explicitly closed in the normal app flow, which is acceptable for a mobile app process lifetime but not formally managed.
+- Registration helpers guard duplicate registrations, which helps with the duplicated startup path.
+- If Hive boxes are not open, DI can fall back to in-memory stores. This is useful for tests but risky if accidentally reached in production after storage initialization failure.
+- Global service locator usage from UI can obscure dependencies.
 
 ## 16. Networking and API Integration
 
 Not detected in the current repository.
 
-Confirmed absence:
+Searches did not find active HTTP, Dio, GraphQL, WebSocket, Firebase, Supabase, or custom backend clients. No base URLs, API clients, interceptors, token refresh logic, pagination clients, multipart upload services, or network retry policies were detected in app source.
 
-- No HTTP client
-- No base URL
-- No API versioning
-- No interceptors
-- No token refresh logic
-- No GraphQL
-- No WebSocket usage
-- No multipart upload or file download code
-- No offline sync with a remote backend
+The app is currently local/offline-first from repository evidence.
 
-The app is local-only from the inspected code.
+Exception:
+
+The PDF export path uses `printing`/`PdfGoogleFonts`, and tests attempted to download Google Fonts. This is not an application API integration, but it is an external network dependency risk for PDF font loading.
 
 ## 17. API Endpoint Inventory
 
 Not detected in the current repository.
 
-There are no statically confirmed network endpoints.
+No HTTP method/endpoint inventory can be produced because no remote API layer was found.
+
+| Method | Endpoint | Purpose | Request Model | Response Model | Authentication | Used By |
+| --- | --- | --- | --- | --- | --- | --- |
+| N/A | N/A | Not detected in current repository | N/A | N/A | N/A | N/A |
 
 ## 18. Authentication and Session Management
 
-Not detected in the current repository.
+Remote user authentication is not detected in the current repository.
 
-Confirmed absence:
+Confirmed local security:
 
-- No login or registration flow
-- No Firebase Authentication integration
-- No stored auth token or session token
-- No refresh token logic
-- No logout or account deletion flow
-- No role-based access control
-- No biometric authentication
+- Local PIN app lock is implemented by `AppLockService`.
+- PINs are validated as 4 to 8 digits.
+- PIN storage uses salted iterative SHA-256 hashing.
+- Failed attempts are counted.
+- Lockout is enforced after repeated failures.
+- Lifecycle-based locking exists through `AppLockLifecyclePolicy` and `AppLockGate`.
 
-Startup does not branch on authentication state.
+Authentication/session diagram:
+
+```mermaid
+flowchart TD
+    A[App starts] --> B[AppLockCubit.load]
+    B --> C{App lock enabled?}
+    C -->|No| D[App content visible]
+    C -->|Yes| E[Locked state]
+    E --> F[User enters PIN]
+    F --> G{AppLockService verifies hash}
+    G -->|Success| D
+    G -->|Failure| H[Increment failed attempts]
+    H --> I{Attempts >= max?}
+    I -->|Yes| J[Lockout until timeout]
+    I -->|No| E
+```
+
+Not detected:
+
+- Login.
+- Registration.
+- OTP.
+- Email verification.
+- Password reset.
+- Social login.
+- Anonymous login.
+- Remote session tokens.
+- Token refresh.
+- Logout.
+- Account deletion.
+- Role-based access.
+- Firebase Authentication.
+- Actual biometric authentication plugin or biometric prompt.
+
+Biometric note:
+
+`AppLockService` stores a biometric-enabled flag, but no biometric package or authentication call was detected. Treat biometric support as partially implemented or placeholder.
 
 ## 19. Models, Entities, and Data Mapping
 
-Confirmed domain entities:
+Main domain entities:
 
-- Category
-- FinancialTransaction
-- WalletBalance
-- WalletBalanceSummary
-- WalletType
-- TransactionType
-- CategoryBehavior
+| Entity | File | Notes |
+| --- | --- | --- |
+| `Category` | `lib/domain/entities/category.dart` | Freezed entity; type, localization key, icon/color, hidden/default/custom flags, default wallet, behavior. |
+| `FinancialTransaction` | `lib/domain/entities/financial_transaction.dart` | Equatable entity; income/expense, amount, category, date, note, wallet, person, timestamps. |
+| `Budget` | `lib/domain/entities/budget.dart` | Equatable; category/month amount, archived flag, timestamps. |
+| `WalletBalance` | `lib/domain/entities/wallet_balance.dart` | Wallet type, base balance, updated time. |
+| `ReportFilter` | `lib/domain/entities/report_filter.dart` | Period/category/wallet/type filtering and date-range resolution. |
+| `ReportData` / `ReportSummary` | `lib/domain/entities/report_data.dart` | Aggregated reporting output. |
+| `DashboardSummary` | `lib/domain/entities/dashboard_summary.dart` | Today/week/month dashboard metrics. |
+| `BudgetProgress` | `lib/domain/entities/budget_progress.dart` | Budget spending status. |
 
-Confirmed storage models:
+Persistence/data models:
 
-- CategoryModel
-- FinancialTransactionModel
-- WalletBalanceModel
+| Model | File | Mapping style | Notes |
+| --- | --- | --- | --- |
+| `CategoryModel` | `lib/data/models/category_model.dart` | Freezed + JSON serializable + custom validation | Handles legacy `is_hidden` and `default_wallet`. |
+| `FinancialTransactionModel` | `lib/data/models/financial_transaction_model.dart` | Manual JSON parsing | Provides defaults for legacy timestamps. |
+| `BudgetModel` | `lib/data/models/budget_model.dart` | Manual JSON parsing | Validates month and required fields. |
+| `WalletBalanceModel` | `lib/data/models/wallet_balance_model.dart` | Manual JSON parsing | Parses wallet enum and timestamps. |
 
-Mapping behavior:
-
-- CategoryModel and FinancialTransactionModel convert to/from domain objects.
-- JSON is encoded manually to Hive string boxes.
-- Legacy category JSON is normalized for is_hidden and default_wallet snake-case fields.
-- FinancialTransactionModel and WalletBalanceModel use DateTime.tryParse with fallback to DateTime.now for missing or malformed dates.
-
-Model relationship summary:
+Model relationships:
 
 ```mermaid
 classDiagram
-    class Category
-    class CategoryModel
-    class FinancialTransaction
-    class FinancialTransactionModel
-    class WalletBalance
-    class WalletBalanceModel
-    class WalletBalanceSummary
-    CategoryModel --> Category
-    FinancialTransactionModel --> FinancialTransaction
-    WalletBalanceModel --> WalletBalance
-    WalletBalanceSummary --> WalletType
-    Category --> TransactionType
-    Category --> WalletType
-    FinancialTransaction --> TransactionType
-    FinancialTransaction --> WalletType
+    class Category {
+      id
+      type
+      localizationKey
+      isHidden
+      defaultWallet
+      behavior
+    }
+    class FinancialTransaction {
+      id
+      type
+      amount
+      categoryId
+      date
+      wallet
+      personName
+    }
+    class Budget {
+      id
+      categoryId
+      amount
+      period
+      isArchived
+    }
+    class WalletBalance {
+      walletType
+      baseBalance
+      updatedAt
+    }
+    class ReportData {
+      summary
+      categorySlices
+      timeSeries
+    }
+    Category "1" <-- "*" FinancialTransaction : categoryId
+    Category "1" <-- "*" Budget : categoryId
+    FinancialTransaction "*" --> "0..1" WalletBalance : wallet
+    FinancialTransaction "*" --> ReportData : aggregates
+    Budget "*" --> FinancialTransaction : progress calculation
 ```
 
-Data-mapping risks:
+Data mapping observations:
 
-- Invalid stored dates silently fall back to now in transaction and wallet-balance models
-- Unknown enum values sometimes fall back to defaults or null, which is safe but can hide data drift
-- All local storage is plain-text JSON in Hive string boxes
+- Domain and persistence models are separated.
+- Generated files should not be manually edited.
+- Some enum conversion is strict and can throw for invalid stored values.
+- Some legacy fallback behavior exists, especially for transactions and categories.
+- Date parsing uses stored ISO-like values through Dart `DateTime` parsing.
+
+Risks:
+
+- Duplicate validation helpers exist across models, which is manageable now but can drift.
+- Transaction persistence permits dangling category references if bypassing UI/use-case assumptions.
+- Timezone/date behavior should be verified for month/week boundaries in real user locales, although tests cover several reporting boundaries.
 
 ## 20. Local Storage and Cache
 
-Confirmed storage mechanism: Hive.
+Primary local persistence:
 
-Boxes:
+- Hive boxes for categories, transactions, settings, wallet balances, budgets, metadata, legacy migration, and quarantine.
+- Secure storage for Hive encryption key and app lock values.
+- File system for exported PDF/Excel/backup files.
+- In-memory data source fallbacks for tests or when boxes are not open.
 
-| Box | Type | Purpose | Written by | Read by | Cleared when |
-|---|---|---|---|---|---|
-| categories_v1 | String | Serialized category records | Category repository/use cases | Category repository, transactions cubit, categories screen | Not cleared automatically |
-| transactions_v1 | String | Serialized transactions | Transaction repository/use cases | Dashboard, history, reports, wallet balances | Not cleared automatically |
-| settings_v1 | String | locale and theme | AppSettingsCubit | AppSettingsCubit and app shell | Not cleared automatically |
-| wallet_balances_v1 | String | Serialized wallet balances | Wallet balance repository/use cases | WalletBalancesCubit | Not cleared automatically |
+Storage inventory:
 
-Confirmed keys and storage areas:
+| Key or Storage Area | Type | Purpose | Written By | Read By | Cleared When |
+| --- | --- | --- | --- | --- | --- |
+| `categories_v2` | Encrypted Hive string box | Category records as JSON | Category data source, migration/default catalog | Category repository/use cases | Backup reset/delete local data can replace contents. |
+| `transactions_v2` | Encrypted Hive string box | Transaction records as JSON | Transaction data source, migration/restore | Transaction repository/use cases | Delete transaction, restore replace, delete local data. |
+| `settings_v2` | Encrypted Hive string box | Locale, theme, financial masking settings | `AppSettingsStore`, migration/restore | Settings Cubit, backup/restore | Restore/delete local data clears or replaces. |
+| `wallet_balances_v2` | Encrypted Hive string box | Wallet base balances | Wallet data source, migration/restore | Wallet balance use cases | Restore/delete local data. |
+| `budgets_v1` | Encrypted Hive string box | Budget records as JSON | Budget data source/restore | Budget use cases | Restore/delete local data. |
+| `storage_metadata_v1` | Hive metadata box | Schema version | Storage migration manager | Storage migration manager | Not normally user-cleared. |
+| `storage_quarantine_v1` | Hive string box | Invalid record quarantine payloads | Storage quarantine store | Migration diagnostics/future review | Not clearly exposed to users. |
+| Legacy boxes | Hive boxes | Migration source data | Previous app versions | Migration manager | Not clearly cleared after migration. |
+| Secure storage encryption key | Secure storage | Hive AES key material | `StorageEncryptionService` | Hive bootstrap | Not part of backup/delete data. |
+| Secure app-lock values | Secure storage | PIN hash/salt, biometric flag, lockout metadata, timeout | `AppLockService` | `AppLockService` | App lock disable clears most app-lock values; timeout may remain. |
+| Export directory | File system | PDF/Excel/backup output | `LocalExportWriter` | User/system share/open flows | Not automatically cleared in code inspected. |
 
-- settings_v1: locale, themeMode
-- category records: id as Hive key, JSON record as value
-- transaction records: id as Hive key, JSON record as value
-- wallet balance records: walletType.name as Hive key, JSON record as value
+Migration strategy:
 
-Cache and lifecycle notes:
+- `StorageSchema.currentVersion` is 2.
+- Migration manager rejects future schema versions.
+- Legacy category, transaction, settings, and wallet boxes are opened.
+- Valid legacy records are copied into current boxes.
+- Current boxes are validated.
+- Invalid current records are quarantined and removed.
 
-- No encryption layer is present.
-- No migration manager beyond the category JSON normalization helper.
-- In-memory data sources exist only for tests and previews.
+Encryption:
+
+- Current data boxes are opened with `HiveAesCipher`.
+- The Hive encryption key is generated with `Random.secure()` and stored through secure storage.
+
+Security concern:
+
+`LocalStorageBootstrap` opens `storage_quarantine_v1` without Hive encryption, and `StorageQuarantineStore.record` stores raw invalid record values. If invalid financial records are quarantined, sensitive data may be written to an unencrypted Hive box.
 
 ## 21. Firebase and Third-Party Integrations
 
+Firebase:
+
 Not detected in the current repository.
 
-Confirmed absence of app-level integrations:
+No Firebase packages, `google-services.json`, `GoogleService-Info.plist`, Firebase initialization calls, Firestore, Realtime Database, Firebase Auth, Messaging, Crashlytics, Analytics, Remote Config, Dynamic Links, App Check, or Performance Monitoring were detected.
 
-- Firebase Core, Auth, Firestore, Messaging, Crashlytics, Analytics, Remote Config, Dynamic Links, App Check, Performance Monitoring
-- Google Sign-In, Apple Sign-In, Facebook Login
-- Stripe, PayPal, RevenueCat, Google Play Billing, App Store subscriptions
-- AdMob, OneSignal, Sentry, Supabase, Agora, Twilio, Gemini, OpenAI
+Third-party package integrations detected:
 
-Declared but unused packages relevant to this section:
+| Integration | Package | Initialization | Used By | Status |
+| --- | --- | --- | --- | --- |
+| Local database | `hive`, `hive_flutter` | `LocalStorageBootstrap.initialize()` | Data sources | Active |
+| Secure storage | `flutter_secure_storage` | `FlutterSecureValueStore` | App lock, Hive key storage | Active |
+| Routing | `go_router` | GetIt `GoRouter` | Root app/shell | Active |
+| State management | `flutter_bloc` | Bloc providers | Cubits/screens | Active |
+| DI | `get_it` | `configureDependencies()` | Whole app | Active |
+| Charts | `fl_chart` | Widget-level use | Reports | Active |
+| PDF/share | `pdf`, `printing` | Export service | Reports/settings | Active |
+| Excel | `excel` | Export service | Reports/settings | Active |
+| File paths | `path_provider` | Export writer | Export/backup | Active |
+| Localization | `intl`, `flutter_localizations` | `MaterialApp.router` | Whole app | Active |
 
-- flutter_local_notifications
-- connectivity_plus
-- flutter_dotenv
-- fl_chart
-- excel
-- pdf
-- printing
+Other SDKs not detected:
 
-No confidential IDs or keys were present in the inspected app code.
+Google Maps, Google Sign-In, Facebook Login, Apple Sign-In, RevenueCat, Play Billing, App Store subscriptions, AdMob, OneSignal, Sentry, Supabase, Stripe, PayPal, Agora, Twilio, Gemini, OpenAI.
 
 ## 22. Payments, Subscriptions, Purchases, and Ads
 
 Not detected in the current repository.
 
-Confirmed absence:
+No monetization packages, product IDs, paywall screens, purchase services, receipt validation, ads, rewarded unlocks, subscription state, premium entitlement storage, restore purchase flow, or store-console configuration were detected.
 
-- No purchase flow
-- No premium state
-- No entitlement storage
-- No restore-purchase flow
-- No ad placement
-- No paywall screen
-
-The budgets screen is not a monetization surface; it is a placeholder feature screen.
+External store-console requirements are therefore unable to verify from repository code alone.
 
 ## 23. UI Architecture and Reusable Components
 
-Confirmed reusable UI building blocks:
+UI structure:
 
-- EmptyState
-- LoadingSkeleton
-- TransactionListTile
-- AddTransactionSheet
-- CategoryCard
-- CategoryEditorSheet
-- Category icon picker, color picker, wallet picker
-- App theme extension and design tokens
-- Widget previews for three representative widgets
+- `MasrofyApp` owns root `MaterialApp.router`.
+- `MainShell` owns app scaffold, app bar, bottom navigation/rail, and FAB.
+- Feature screens live under `lib/presentation/screens/`.
+- Reusable widgets live under `lib/presentation/widgets/`.
+- Security wrapper lives under `lib/presentation/security/`.
 
-UI structure notes:
+Important reusable components:
 
-- Main content screens use CustomScrollView and slivers for long content.
-- Settings uses sections and list tiles.
-- The app shell uses a floating action button and bottom navigation.
-- Most UI state is presentation-only and kept out of the domain layer.
+| Component/File | Purpose |
+| --- | --- |
+| `lib/presentation/shell/main_shell.dart` | Responsive shell with bottom navigation or navigation rail. |
+| `lib/presentation/widgets/transactions/add_transaction_sheet.dart` | Transaction add/edit modal form. |
+| `lib/presentation/widgets/transactions/transaction_list_tile.dart` | Shared transaction display and actions. |
+| `lib/presentation/widgets/empty_state.dart` | Reusable empty-state UI. |
+| `lib/presentation/widgets/loading_skeleton.dart` | Loading placeholder UI. |
+| `lib/presentation/widgets/privacy/financial_privacy.dart` | Amount masking helpers. |
+| `lib/presentation/widgets/transactions/transaction_formatters.dart` | Money/date/category formatting helpers. |
+| `lib/presentation/security/app_lock_gate.dart` | Root lock gate. |
 
-Potential design-system gaps:
+Responsive behavior:
 
-- There is no dedicated font family override.
-- Some text styles are still defined inline in private widgets for emphasis.
-- Business-summary calculations occur inside widgets instead of dedicated presentation services.
+- `MainShell` switches between bottom navigation and navigation rail around the tablet breakpoint.
+- `AppDesignTokens` defines breakpoints, readable max width, spacing, radius, icon sizes, and durations.
+
+UI caveats:
+
+- Runtime screenshots were not captured in this analysis.
+- Accessibility, touch target, text overflow, and full RTL layout quality require device/emulator/browser verification.
 
 ## 24. Theme, Dark Mode, Typography, and Design System
 
-Confirmed theme system:
+Theme files:
 
-- Material 3 enabled
-- ColorScheme.fromSeed for both light and dark themes
-- Custom semantic colors via MasrofyThemeExtension: income, expense, warning, success, danger, info
-- Centralized spacing, radii, elevation, icon size, and breakpoint tokens in AppSpacing, AppRadii, AppElevation, AppIconSizes, and AppBreakpoints
-- Theme mode persisted in Hive and applied through AppSettingsCubit
+- `lib/core/theme/app_theme.dart`
+- `lib/core/theme/app_design_tokens.dart`
 
-Typography notes:
+Confirmed:
 
-- TextTheme is explicitly customized for headlineMedium, titleLarge, titleMedium, bodyMedium, and labelLarge
-- No custom font family is declared
+- Material 3 is used.
+- Light and dark themes are defined.
+- Seed color is set in code.
+- `MasrofyThemeExtension` adds semantic colors for income, expense, savings, warning, success, danger, info, budget, elevated surface, borders, dividers, subtle text, masked amounts, and disabled states.
+- `AppSettingsCubit` controls `ThemeMode.system`, `ThemeMode.light`, and `ThemeMode.dark`.
 
-RTL notes:
+Design tokens:
 
-- Arabic is the default stored locale
-- Localization strings are provided in Arabic and English
-- Icon direction handling is mostly left to Material and Flutter defaults
+- Spacing scale.
+- Border radii.
+- Elevation values.
+- Icon sizes.
+- Breakpoints for tablet/desktop.
+- Animation durations/curves.
+- Responsive page padding.
 
-Design risks:
+Typography:
 
-- No runtime contrast validation was performed
-- Some screens still contain inline layout constants, though the main spacing system is centralized
+- Uses Flutter/Material default typography; no custom font family is declared in `pubspec.yaml`.
+
+Assets/fonts:
+
+- No app-level assets or fonts are declared in `pubspec.yaml`.
+
+Potential design debt:
+
+- Some cards and controls use 12px radii through the design system. That is consistent locally, but future UI work should follow the existing app theme unless a design-system revision is explicitly requested.
 
 ## 25. Localization and RTL Support
 
-Confirmed localization setup:
+Localization configuration:
 
-- l10n.yaml uses lib/l10n as the ARB source directory
-- Template file: app_ar.arb
-- Generated file output: lib/l10n/generated/app_localizations.dart
-- Supported locales: ar and en
+- `l10n.yaml`
+- `lib/l10n/app_ar.arb`
+- `lib/l10n/app_en.arb`
+- Generated localization output under `lib/l10n/generated/`
 
-Confirmed behavior:
+Confirmed:
 
-- AppSettingsCubit persists localeCode in Hive
-- Default locale is Arabic
-- App title comes from AppLocalizations.appName
-- Currency symbol is localized via the generated strings
-- Dates are formatted with locale-aware helpers in transaction_formatters.dart
+- Flutter l10n generation is enabled in `pubspec.yaml` with `generate: true`.
+- Template ARB is `app_ar.arb`.
+- Supported locales are wired in `MasrofyApp`.
+- Settings allow Arabic and English locale changes.
+- Default app settings locale is Arabic.
+- Formatting helpers map English to `en_US` and otherwise use Arabic/Egyptian formatting.
+- RTL should be handled by Flutter locale/directionality when Arabic is active.
 
-Hardcoded user-facing text risk:
+Risks:
 
-- Some preview/demo strings and test fixtures are hardcoded, but app screens are localized
+- Some user-facing errors in Cubits are hardcoded rather than localized through ARB files.
+- Full RTL visual QA was not performed during this static analysis.
+- PDF Arabic output depends on font availability; tests showed font-download fallback warnings.
 
 ## 26. Assets
 
-No application asset declarations were found in pubspec.yaml.
+Pubspec-declared assets:
 
-Confirmed asset-related observations:
+Not detected in the current repository.
 
-- The app uses Material icons and custom icon mapping rather than a declared image/font asset set.
-- Native platform icon and launch image asset catalogs exist in iOS and macOS.
-- Web icon and manifest assets exist under web/.
+Pubspec-declared custom fonts:
 
-Potential issues:
+Not detected in the current repository.
 
-- No declared app assets means there is no app-specific asset inventory to validate.
-- There is no evidence of missing asset declarations because no app assets were declared.
+Platform assets:
+
+| Area | Evidence |
+| --- | --- |
+| Android launcher icons | Standard Android mipmap resources under `android/app/src/main/res/`. |
+| iOS launch images | Standard Flutter iOS launch images under `ios/Runner/Assets.xcassets/`. |
+| Web icons | `web/icons/` and `web/favicon.png`. |
+
+Untracked product-like assets:
+
+| File | Git status | App usage |
+| --- | --- | --- |
+| `assets/images/logos/logo1.jpg` | Untracked | Not referenced by app source and not declared in `pubspec.yaml`. |
+| `assets/images/logos/logo2.png` | Untracked | Not referenced by app source and not declared in `pubspec.yaml`. |
+
+Product screenshots, store graphics, onboarding illustrations, and declared custom icon sets were not detected.
 
 ## 27. Permissions
 
-Permissions matrix:
+Permission inventory:
 
-| Permission | Platform | Requested by | Runtime flow | User explanation | Risk |
-|---|---|---|---|---|---|
-| Camera | none detected | none | none | none | none |
-| Microphone | none detected | none | none | none | none |
-| Photos | none detected | none | none | none | none |
-| Storage | none detected | Hive app-private storage only | none | none | low |
-| Location | none detected | none | none | none | none |
-| Notifications | none detected | none | none | none | none |
-| Bluetooth | none detected | none | none | none | none |
-| Contacts | none detected | none | none | none | none |
-| Calendar | none detected | none | none | none | none |
-| Background execution | none detected | none | none | none | none |
-| Tracking | none detected | none | none | none | none |
-| Biometrics | none detected | none | none | none | none |
-| Internet | not declared in Android manifest | none | no network code exists | none | low |
+| Permission | Platform | Requested By | Runtime Flow | User Explanation | Risk |
+| --- | --- | --- | --- | --- | --- |
+| Internet | Android debug/profile only | Flutter tooling/dev builds | No app runtime flow detected | N/A | Low; debug/profile manifests commonly include this. |
+| Internet | Android release/main | Not declared | N/A | N/A | Low for local-only app; PDF font network behavior may still be relevant. |
+| App sandbox | macOS release | macOS entitlements | Platform entitlement | N/A | Expected. |
+
+Not detected:
+
+- Camera.
+- Microphone.
+- Photos.
+- External storage permissions.
+- Location.
+- Notifications.
+- Bluetooth.
+- Contacts.
+- Calendar.
+- Background execution.
+- Tracking.
+- Biometrics permission/usage description.
+
+iOS usage descriptions:
+
+No `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription`, biometrics usage description, location usage description, or similar permission descriptions were detected in `ios/Runner/Info.plist`. This is acceptable only if those capabilities remain unused.
 
 ## 28. Android Configuration
 
-Confirmed configuration:
+Important files:
 
-- Application ID: com.example.masrofy
-- Namespace: com.example.masrofy
-- Compile SDK, min SDK, and target SDK come from Flutter Gradle defaults
-- Java 17 and Kotlin JVM target 17
-- Core library desugaring enabled
-- Release build currently uses the debug signing config
-- Main activity is a standard FlutterActivity
-- Only launcher intent filter is present
+- `android/app/build.gradle.kts`
+- `android/build.gradle.kts`
+- `android/gradle/wrapper/gradle-wrapper.properties`
+- `android/app/src/main/AndroidManifest.xml`
+- `android/app/src/debug/AndroidManifest.xml`
+- `android/app/src/profile/AndroidManifest.xml`
+- `android/key.properties.example`
 
-Not detected:
+Confirmed:
 
-- Product flavors
-- Deep links or app links
-- Firebase configuration
-- Notification channels or receivers
-- ProGuard/R8 customization
-- File provider setup
+- Android namespace/application ID is `com.example.masrofy`.
+- Android app label is `masrofy`.
+- Main activity is exported as launcher activity.
+- Java compatibility is set to Java 17.
+- Kotlin JVM target is 17.
+- Android Gradle plugin version is 8.11.1.
+- Kotlin Gradle plugin version is 2.2.20.
+- Gradle wrapper is 8.14.
+- Release signing reads either `android/key.properties` or environment variables with `MASROFY_ANDROID_*` names.
+- Release assemble/bundle/package tasks throw if release signing config is missing.
+- `android/key.properties.example` contains placeholders and warnings not to commit real credentials.
 
-Risk note:
+Risks:
 
-- The Android build configuration is template-level and not production-hardened.
+- `com.example.masrofy` is a template-style identifier and must be replaced before production release.
+- Release signing cannot be externally verified from repository code alone.
+- No release build was run, by instruction.
 
 ## 29. iOS Configuration
 
-Confirmed configuration:
+Important files:
 
-- Bundle display name: Masrofy
-- Bundle identifier comes from build settings
-- Standard Flutter app delegate and scene delegate are present
-- No custom capabilities are declared in the inspected files
-- No usage-description keys for camera, contacts, location, photos, microphone, or notifications were found in Info.plist
+- `ios/Runner/Info.plist`
+- `ios/Runner/AppDelegate.swift`
+- `ios/Runner.xcodeproj/project.pbxproj`
 
-Not detected:
+Confirmed:
 
-- Push notifications
-- Background modes
-- Associated domains
-- URL schemes
-- Firebase setup
-- StoreKit configuration
+- Display name is `Masrofy`.
+- Bundle name is `masrofy`.
+- Bundle version/name use Flutter build variables.
+- Bundle identifier in project configuration is `com.example.masrofy`.
+- `AppDelegate` registers generated Flutter plugins.
+- iPhone supports portrait plus landscape left/right.
+- iPad orientations include upside down.
+
+Risks:
+
+- `com.example.masrofy` is a template-style bundle identifier and must be replaced before production release.
+- App Store signing, provisioning, team ID, and capabilities require external verification.
+- No iOS build or simulator runtime test was performed.
 
 ## 30. Other Platform Configuration
 
 Web:
 
-- Uses path URL strategy from main.dart
-- web/index.html and web/manifest.json are still the default Flutter template style
-- Web manifest declares portrait-primary orientation and generic metadata
-
-Windows:
-
-- Standard template runner only
+- `web/manifest.json` names the app `masrofy`.
+- Manifest description still says "A new Flutter project."
+- Theme/background colors appear to be stock Flutter blue.
+- `usePathUrlStrategy()` is called in `lib/main.dart`.
+- Web readiness requires verification because app code imports `dart:io`.
 
 macOS:
 
-- Standard template runner only
+- `macos/Runner/Configs/AppInfo.xcconfig` uses `PRODUCT_NAME = masrofy`.
+- `PRODUCT_BUNDLE_IDENTIFIER = com.example.masrofy`.
+- Release entitlements include app sandbox.
+- Debug/profile entitlements include JIT and network server.
+
+Windows:
+
+- Runner resources identify product/company with template-style values such as `com.example`.
+- Product name is `masrofy`.
 
 Linux:
 
-- Standard template runner only
+- Standard Flutter Linux runner is present.
 
-Confirmed status:
+Risks:
 
-- These platform folders exist but appear uncustomized and are not platform-feature-rich.
+- Desktop identifiers and metadata still need productization.
+- Web manifest is not release ready.
+- Desktop/web runtime was not verified.
 
 ## 31. Error Handling and Logging
 
-Confirmed error handling patterns:
+Confirmed error handling:
 
-- Cubits emit errorMessage or error enums for user-facing feedback
-- Category and wallet balance management provide retry states when no data is loaded
-- Transactions and category loading handle stream errors with localized messages
-- Validation exceptions are used for domain-level category and transaction constraints
+- Startup bootstrap widget displays a failure screen and retry action for bootstrap-widget failures.
+- Data source/model parsing throws validation errors that migration can quarantine.
+- Backup restore validates payloads and rolls back if writes fail.
+- App lock handles invalid PIN, failed attempts, and lockout.
+- Cubits expose loading/success/failure states.
+- Screens show empty states, snackbars, and retry affordances in several areas.
+
+Not detected:
+
+- Global Flutter error handler.
+- `runZonedGuarded`.
+- `PlatformDispatcher.instance.onError`.
+- Crash reporting.
+- Structured logging package.
+- Central `Failure`/`Result`/`Either` type.
 
 Logging:
 
-- No logging package is used in the inspected app code
-- No debugPrint or print calls were found in lib/
+- `analysis_options.yaml` enables `avoid_print: true`.
+- No production logging system was detected.
 
-Limitations:
+Risks:
 
-- Generic catch blocks swallow the original error details before showing user messages
-- No central error-reporting service exists
+- Exception handling is local and inconsistent across features.
+- Some errors are mapped to generic messages.
+- Without crash reporting, production failures will be hard to diagnose.
+- Pre-`runApp` startup failures may prevent the startup failure UI from rendering.
 
 ## 32. Analytics, Monitoring, and Crash Reporting
 
 Not detected in the current repository.
 
-No analytics events, crash-reporting SDK, or monitoring dashboard integration was found.
+No Firebase Analytics, Crashlytics, Sentry, custom analytics event tracker, logging backend, performance monitoring, or remote diagnostics integration was found.
+
+Production impact:
+
+- User behavior and crash rates cannot be measured from repository code alone.
+- Release readiness should include monitoring decisions if the app will be distributed publicly.
 
 ## 33. Testing and Code Quality
 
-Validated results:
+Static analysis:
 
-- flutter analyze: No issues found
-- flutter test: All tests passed, 43 tests
+- `analysis_options.yaml` includes `flutter_lints`.
+- Generated Freezed/JSON/l10n files are excluded.
+- Strict casts, strict inference, and strict raw types are enabled.
+- `avoid_print` and `use_super_parameters` are enabled.
+- `flutter analyze` passed with no issues.
 
 Test inventory:
 
-- Unit tests for category repository, transaction repository, category models, transaction models, default category catalog, category use cases, wallet balance use cases
-- Cubit tests for categories and app settings
-- Widget test for the app shell and transaction flow
-- Widget test for categories screen behavior
-- Repository and data-source tests for Hive-backed local persistence
+| Area | Evidence |
+| --- | --- |
+| Core security | `test/core/security/app_lock_service_test.dart` |
+| Core storage | `test/core/storage/storage_encryption_service_test.dart`, migration tests |
+| Backup/restore | `test/data/backup/backup_restore_service_test.dart` |
+| Export | `test/data/export/exporters_test.dart` |
+| Data sources | Category and budget data source tests |
+| Data models | Category, transaction, budget, wallet model tests |
+| Repositories | Category, transaction, budget repository tests |
+| Domain use cases | Categories, transactions, wallets, budgets, dashboard, reports |
+| Cubits | Transactions, categories, budgets, reports, app lock, settings |
+| Screens/widgets | Settings, categories, reports, history, budgets, transaction tile, formatters |
+| Startup | `test/startup/bootstrap_and_di_test.dart` |
+| Root widget flows | `test/widget_test.dart` |
 
-Missing or unverified:
+Validation result:
 
-- No integration_test Dart files were found
-- No golden tests were found
-- Coverage was not measured during this analysis
+- `flutter test` passed: 111 tests.
 
-Quality controls:
+Warnings observed during tests:
 
-- analysis_options.yaml enables flutter_lints and strict cast/inference rules
-- avoid_print is enabled
-
-## 34. Dependency Analysis
-
-Confirmed direct dependencies and their observed usage:
-
-| Package | Declared version | Purpose | Observed status |
-|---|---|---|---|
-| flutter | sdk | App framework | active |
-| cupertino_icons | ^1.0.8 | icon font helper | not clearly used in app code |
-| flutter_localizations | sdk | localization delegates | active |
-| intl | any | date/number formatting and localization support | active |
-| go_router | ^17.3.0 | navigation | active |
-| get_it | ^9.2.1 | dependency injection | active |
-| flutter_bloc | ^9.1.1 | Cubits and Bloc widgets | active |
-| equatable | ^2.1.0 | immutable equality for entities/states | active |
-| hive | ^2.2.3 | local storage | active |
-| hive_flutter | ^1.1.0 | Hive initialization for Flutter | active |
-| path_provider | ^2.1.6 | storage helper | not used in app code |
-| connectivity_plus | ^7.2.0 | network status helper | unused in app code |
-| flutter_dotenv | ^6.0.1 | env loading | unused in app code |
-| fl_chart | ^1.2.0 | charting | unused in app code |
-| flutter_local_notifications | ^22.0.1 | notifications | unused in app code |
-| excel | ^4.0.6 | spreadsheet export | unused in app code |
-| pdf | ^3.12.0 | PDF generation | unused in app code |
-| printing | ^5.14.3 | printing/PDF preview | unused in app code |
-| freezed_annotation | ^3.1.0 | immutable generated models | active |
-| json_annotation | ^4.12.0 | generated JSON serialization | active in generated layer |
-| uuid | ^4.5.3 | generated IDs | active |
-| flutter_web_plugins | sdk | web URL strategy | active |
-
-Dev dependencies:
-
-- flutter_test, flutter_lints, build_runner, freezed, json_serializable, mockito, bloc_test, coverage, checks, integration_test
-
-Observed notes:
-
-- bloc_test is used.
-- mockito and checks were not found in the inspected Dart code.
-- integration_test exists as a dev dependency, but no integration test Dart files were found.
-
-## 35. Environment and Configuration Management
-
-Confirmed environment/configuration sources:
-
-- l10n.yaml for localization generation
-- analysis_options.yaml for analyzer and lint rules
-- pubspec.yaml for package declarations and app metadata
-- Hive boxes for runtime settings/persistence
+- PDF export tests could not download Google Fonts and fell back to Helvetica.
+- The PDF library warned that Helvetica has no Unicode support.
+- Tests still passed, but Arabic PDF rendering requires runtime/offline verification.
 
 Not detected:
 
-- .env files
-- flavor-specific runtime environment switching
-- remote config or build-time backend selection
+- `integration_test/` directory.
+- Golden tests.
+- CI workflow files under `.github/`.
+
+Quality assessment:
+
+The project has strong local quality controls for a Flutter app, especially around domain logic, storage, backup, and presentation components.
+
+## 34. Dependency Analysis
+
+Dependency groups:
+
+| Group | Packages | Active usage |
+| --- | --- | --- |
+| Flutter/UI | `flutter`, `cupertino_icons` | Active |
+| Localization | `flutter_localizations`, `intl` | Active |
+| Routing | `go_router` | Active |
+| DI | `get_it` | Active |
+| State | `flutter_bloc`, `equatable` | Active |
+| Local storage | `hive`, `hive_flutter`, `path_provider` | Active |
+| Export | `excel`, `pdf`, `printing` | Active |
+| Charts | `fl_chart` | Active |
+| Serialization/codegen | `freezed_annotation`, `json_annotation`, `build_runner`, `freezed`, `json_serializable` | Active for models/generated files |
+| Security/utilities | `crypto`, `uuid`, `flutter_secure_storage` | Active |
+| Web path URLs | `flutter_web_plugins` | Active in `main.dart` |
+| Testing | `flutter_test`, `mockito`, `bloc_test`, `coverage`, `checks`, `integration_test` | Active except no `integration_test/` folder detected |
+
+`flutter pub get` result:
+
+- Dependencies resolved successfully.
+- 19 packages have newer versions incompatible with current constraints.
+
+No upgrade is recommended solely because newer versions exist. Future upgrades should be planned only for concrete compatibility, security, or feature needs and should include full regression testing.
+
+Potential overlapping responsibilities:
+
+- No duplicate state-management frameworks detected.
+- No duplicate routing frameworks detected.
+- No duplicate database frameworks detected.
+
+## 35. Environment and Configuration Management
+
+Environment files:
+
+No `.env`, flavor-specific Dart entry points, Firebase config files, or remote environment configuration were detected.
+
+Configuration sources:
+
+| Configuration | File |
+| --- | --- |
+| Dart/Flutter SDK and dependencies | `pubspec.yaml`, `pubspec.lock` |
+| Analyzer/lints | `analysis_options.yaml` |
+| Localization generation | `l10n.yaml` |
+| Android package/signing/build | `android/app/build.gradle.kts`, `android/key.properties.example` |
+| iOS app metadata | `ios/Runner/Info.plist`, Xcode project files |
+| Web PWA metadata | `web/manifest.json` |
+| Storage schema | `lib/core/storage/storage_schema.dart` |
+| App theme tokens | `lib/core/theme/` |
+
+Secrets:
+
+- No secret values were copied into this report.
+- Android signing is configured to read credentials from local `key.properties` or environment variables.
+- The example key properties file contains placeholders only.
+
+Configuration risks:
+
+- Release identifiers are still template-style on Android/iOS/macOS.
+- Web manifest is still partially template-generated.
+- No flavor/environment separation exists because no backend environments are currently present.
 
 ## 36. Security and Privacy Review
 
-Findings:
+Security findings:
 
-1. Plain-text local financial data in Hive string boxes. Severity: medium. Evidence: categories_v1, transactions_v1, settings_v1, and wallet_balances_v1 store JSON strings without encryption. Potential impact: local-device disclosure if storage is accessed. Recommended action: decide whether encryption is needed for financial data.
-2. Release Android build uses debug signing config. Severity: high. Evidence: android/app/build.gradle.kts release block signs with debug keys. Potential impact: release builds would not be production-safe. Recommended action: replace with proper release signing before shipping.
-3. Automatic import of seeded expense records with personal names. Severity: low to medium. Evidence: provided_expenses_importer.dart imports fixed sample records on startup when the transactions box is open. Potential impact: demo data may confuse users or leak sample personal names into real local data. Recommended action: decide whether this behavior should remain in production.
+| ID | Finding | Severity | Confidence | Evidence | Recommended future action |
+| --- | --- | --- | --- | --- | --- |
+| S1 | Quarantine storage can write raw invalid records to an unencrypted Hive box. | High | Confirmed | `LocalStorageBootstrap` opens `storage_quarantine_v1` without encryption; quarantine store records raw values. | Encrypt quarantine storage or avoid storing raw sensitive payloads. |
+| S2 | Secure storage adapter falls back to in-memory storage on platform/plugin errors. | Medium | Confirmed | `FlutterSecureValueStore` catches plugin/platform failures and stores fallback values in memory. | Decide target-platform policy; fail closed for production security if secure storage is unavailable. |
+| S3 | Biometric flag exists without detected biometric authentication. | Medium | High confidence | `AppLockService` stores biometric enabled state; no biometric package/auth call found. | Remove placeholder UI/flag or implement full biometric flow. |
+| S4 | Release identifiers are template values. | Medium | Confirmed | `com.example.masrofy` in Android/iOS/macOS config. | Replace package IDs before production release. |
+| S5 | No crash reporting or centralized error handling. | Low/Medium | Confirmed | No Crashlytics/Sentry/global handlers found. | Add monitoring before public release if required. |
+| S6 | Current app has no screenshot/recents privacy hardening. | Low | Moderate confidence | No platform secure-window handling detected. | Consider for financial/privacy-sensitive screens. |
 
-No hardcoded secrets, API tokens, service-account credentials, or private keys were found in the inspected repository code.
+Positive findings:
+
+- No hardcoded API secrets, private keys, or service credentials were detected in inspected source.
+- PINs are not stored in plain text; app lock uses salted iterative hashing.
+- Current primary financial Hive boxes are encrypted.
+- Backup excludes app-lock PIN material.
+
+Requires external verification:
+
+- Actual secure storage behavior on each target platform.
+- Android release signing storage outside the repo.
+- Store privacy/security requirements.
 
 ## 37. Performance Review
 
-Confirmed strengths:
+Performance findings:
 
-- Sliver-based long screens
-- Stream-based local persistence updates
-- Small reusable widgets
-- Proper Cubit disposal of stream subscriptions
+| Area | Severity | Confidence | Evidence | Notes |
+| --- | --- | --- | --- | --- |
+| Duplicate startup initialization | Medium | High confidence | `main.dart` and `MasrofyBootstrapApp` both initialize storage/DI | Could waste startup time or expose races. |
+| Dashboard summary in build path | Low/Medium | Confirmed | Dashboard retrieves and computes summary from service locator in UI | Fine for small datasets; consider Cubit/state if histories grow. |
+| Unpaginated local history | Medium | Moderate confidence | History uses local lists/filters | Large datasets may need lazy loading/pagination/indexing. |
+| Full stream snapshot parsing | Medium | Moderate confidence | Hive data sources emit full snapshots | Acceptable at small scale; review for many thousands of records. |
+| PDF/export work | Medium | Requires runtime verification | Export services generate files in-app | Large reports may block UI depending on call path/device. |
+| PDF font download fallback | Low/Medium | Confirmed from test output | Test warned about Google Fonts download failure | Offline font bundling may improve performance/reliability. |
 
-Potential performance risks:
-
-- Dashboard, history, reports, and wallet balance views recompute aggregates from full in-memory transaction lists on rebuild.
-- No pagination or lazy server-backed loading exists.
-- Category and wallet balance screens can rebuild wide sections when state changes.
-
-Severity and confidence:
-
-- Aggregate recomputation risk: low to medium severity, high confidence
-- No undisposed subscriptions found in the inspected Cubits: low severity, confirmed
-- Large-data scalability not verified at runtime: requires runtime verification
+No image-heavy asset performance concerns were detected because no app-level assets are declared.
 
 ## 38. Dead, Duplicate, and Legacy Code
 
-Confirmed or likely unused/placeholder items:
+Confirmed legacy support:
 
-- BudgetsScreen is a placeholder screen but remains routed and visible in the shell.
-- The widget preview file is preview-only and not referenced by runtime code.
-- Declared dependencies such as connectivity_plus, flutter_dotenv, flutter_local_notifications, fl_chart, excel, pdf, and printing are not used in lib/.
-- No integration_test Dart files were found.
+- Legacy Hive boxes are defined for categories, transactions, settings, and wallet balances.
+- Migration manager reads legacy boxes and migrates valid records.
+- Legacy support is active, not dead code.
 
-Legacy-but-referenced items:
+Potential duplicate/unused areas:
 
-- provided_expenses_importer.dart is intentionally referenced during dependency setup and seeds demo data.
-- Default category catalog is legacy-friendly seeded content, not dead code.
+| Item | Classification | Evidence | Recommendation |
+| --- | --- | --- | --- |
+| Duplicate bootstrap initialization | Confirmed duplicate behavior | `main.dart` and `MasrofyBootstrapApp` both call storage/DI bootstrap | Consolidate in a future stabilization phase. |
+| Biometric enabled flag | Partially implemented / probably unused | Stored by app lock service, no biometric auth detected | Clarify product intent. |
+| `integration_test` dev dependency | Possibly unused | Dependency exists, no `integration_test/` directory detected | Add integration tests or remove only when explicitly requested. |
+| Web platform support | Present but possibly not currently viable | Web folder exists, `usePathUrlStrategy`, but app code imports `dart:io` | Decide whether web is a target. |
+| Stock README and web manifest text | Legacy/template metadata | `README.md`, `web/manifest.json` | Replace before release. |
+| Untracked logo files | Cannot determine safely | `assets/images/logos/logo1.jpg`, `assets/images/logos/logo2.png` are untracked and unreferenced | Confirm whether they are intended assets before declaring in `pubspec.yaml` or deleting. |
 
-Cannot determine safely:
-
-- Whether the demo expense import is intentional product behavior or temporary scaffolding.
+No old route system, duplicate API client, abandoned backend integration, or large commented-out implementation was identified during this pass.
 
 ## 39. Technical Debt
 
-Most important debt items in priority order:
+Priority technical debt:
 
-1. Release configuration is not production-ready because Android release signing uses debug keys.
-2. Budgets is an exposed but unimplemented product area.
-3. Local financial data is stored as plain-text JSON in Hive boxes.
-4. Demo expenses are imported automatically at startup when a data box exists.
-5. There is no integration-test coverage for end-to-end flows.
-6. Several declared dependencies are unused, which increases maintenance surface.
-7. Some summary computations are kept in the widget layer instead of dedicated presentation logic.
+1. Consolidate startup initialization so storage/DI run once and failures are shown consistently.
+2. Encrypt or sanitize quarantine storage to prevent sensitive local financial data from being stored in plaintext.
+3. Replace template app identifiers and release metadata.
+4. Decide official platform targets, especially web, and isolate `dart:io` code if web remains supported.
+5. Complete or remove biometric app-lock support.
+6. Localize hardcoded user-facing error messages in Cubits.
+7. Centralize error/failure mapping and consider crash reporting.
+8. Move dashboard summary computation into a clearer state owner if performance or testability suffers.
+9. Add integration tests for critical full flows.
+10. Replace manual restore file-path entry with platform-appropriate file picking if restore remains user-facing.
 
 ## 40. Known Bugs and Suspicious Behaviors
 
-Confirmed suspicious behaviors:
+Evidence-based suspicious behaviors:
 
-- The app seeds fixed sample expenses with dates and Arabic personal names through ProvidedExpensesImporter.
-- The budgets route is reachable but only shows an empty-state placeholder.
-- Wallet balance summaries only track InstaPay and Vodafone Cash, not all possible wallet types.
-
-Not confirmed as bugs, but worth watching:
-
-- No runtime check was performed for locale-specific formatting edge cases.
-- No large-data stress test was performed for dashboard and history aggregation.
+| ID | Behavior | Evidence | Severity | Notes |
+| --- | --- | --- | --- | --- |
+| B1 | Pre-`runApp` startup failure cannot show startup failure UI. | `main.dart` awaits storage/DI before `runApp`; bootstrap failure UI is inside app widget. | Medium | Consolidating bootstrap would fix UX. |
+| B2 | Duplicate storage/DI initialization. | Startup flow calls both in `main.dart` and bootstrap widget. | Medium | Registration guards help but do not fully prove runtime safety. |
+| B3 | Quarantine may store financial data unencrypted. | Quarantine box is opened without cipher and stores raw values. | High | Security/privacy issue. |
+| B4 | Transactions can reference nonexistent/mismatched categories if saved outside UI constraints. | `SaveTransaction` validates category ID non-empty but not existence/type. | Medium | Backup restore validates references; transaction use case should too if future callers expand. |
+| B5 | Wallet balance screen may briefly compute from partial streams. | `WalletBalancesCubit` combines streams without explicit readiness flags. | Low/Medium | Likely flicker/temporary incorrect UI, not data loss. |
+| B6 | PDF Arabic rendering may fail offline. | Test output showed Google Fonts download failure and Helvetica Unicode warning. | Medium | Bundle fonts or verify PDF font caching. |
+| B7 | Web build likely blocked or degraded. | `dart:io` usage in settings/export flow. | Medium/High for web target | Needs actual `flutter build web` only if explicitly requested. |
 
 ## 41. External Configuration That Cannot Be Verified
 
-Not verifiable from repository code alone:
+Unable to verify from repository code alone:
 
-- Which Play Console or App Store Connect project, if any, is intended for release
-- Whether debug signing is intentional for all build variants or just a temporary state
-- Whether the seeded demo expenses are meant to ship in production
-- Whether the unused integration packages are reserved for future features
-- Whether the supported platforms are all intended to be released or only the mobile targets
+- Android Play Store package ownership.
+- Android release keystore existence and correctness.
+- Android signing passwords and key alias.
+- iOS bundle ID ownership.
+- Apple Developer Team, provisioning profiles, and App Store Connect setup.
+- macOS signing/notarization configuration.
+- Windows signing configuration.
+- Whether web deployment is intended.
+- Store listing text, screenshots, privacy labels, and data safety forms.
+- Production privacy/security requirements.
+- Whether any existing users already have data in legacy boxes.
+- Whether template package identifiers are acceptable for current development stage.
+- Whether Arabic PDF export must work fully offline.
 
 ## 42. Risk Register
 
 | ID | Risk | Category | Severity | Confidence | Evidence | Potential Impact | Recommended Action |
-|---|---|---|---|---|---|---|---|
-| R1 | Android release builds are signed with debug keys | Release readiness | High | Confirmed | android/app/build.gradle.kts release block | Production distribution is not safe | Replace with proper release signing before shipping |
-| R2 | Financial data is stored as plain-text JSON in Hive | Security/privacy | Medium | Confirmed | Local storage boxes in lib/core/storage and data sources | Local-device disclosure risk | Decide on encryption or document local-only storage explicitly |
-| R3 | Budgets route is exposed but unimplemented | Product completeness | Medium | Confirmed | BudgetsScreen returns EmptyState only | User-facing feature gap | Define or hide budgets until implemented |
-| R4 | Startup imports fixed demo expenses | Data integrity / UX | Medium | Confirmed | ProvidedExpensesImporter called from DI bootstrap | Users may see unexpected seeded records | Decide if demo data should remain in production |
-| R5 | No integration tests exist | Quality | Medium | Confirmed | No integration_test Dart files found | End-to-end regressions may slip through | Add integration coverage for the main flows |
-| R6 | Summary calculations run inside widgets over full lists | Performance | Low | High confidence | Dashboard/history/reports widgets | Large data sets may rebuild expensively | Move aggregations to dedicated presentation logic if data grows |
-| R7 | Several declared dependencies are unused | Maintainability | Low | Confirmed | grep across lib/ found no usage | Maintenance and audit overhead | Remove or justify dependencies in a later cleanup phase |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| R1 | Quarantine storage can persist raw financial records without encryption. | Security/privacy | High | Confirmed | `LocalStorageBootstrap`, storage quarantine behavior | Sensitive data exposure on device storage. | Encrypt quarantine box or store sanitized diagnostics only. |
+| R2 | Startup initializes storage and DI twice. | Reliability/performance | Medium | High confidence | `lib/main.dart`, `MasrofyBootstrapApp` | Startup races, wasted work, inconsistent failure UI. | Consolidate bootstrap path and test failure cases. |
+| R3 | Template app identifiers remain in native configs. | Release | Medium | Confirmed | Android/iOS/macOS config files | Store rejection, wrong app identity, migration pain. | Replace identifiers before release. |
+| R4 | Web support is advertised by folder/config but app uses `dart:io`. | Platform | Medium/High | High confidence | `web/`, `usePathUrlStrategy`, settings/export code | Web build failure or broken runtime flows. | Decide web support; add conditional implementations. |
+| R5 | Biometric setting exists without full biometric implementation. | Security/UX | Medium | High confidence | App lock service vs dependency scan | Misleading security UI or incomplete feature. | Implement with platform plugin or remove/hide setting. |
+| R6 | Secure storage fallback is in-memory. | Security/reliability | Medium | Confirmed | `FlutterSecureValueStore` fallback behavior | PIN/encryption-key related values may not persist under platform errors. | Fail closed or make fallback test-only. |
+| R7 | PDF font loading depends on external font download/cache. | Export/localization | Medium | Confirmed | Test output from `flutter test` | Arabic PDF text may render incorrectly offline. | Bundle fonts or verify cache strategy. |
+| R8 | No production monitoring detected. | Operations | Low/Medium | Confirmed | No analytics/crash SDKs/global handlers | Production issues may be invisible. | Add monitoring if publicly released. |
+| R9 | Large local histories may degrade filtering/reporting performance. | Performance | Medium | Moderate confidence | Full local snapshots and list filtering | Slow UI for heavy users. | Add pagination/indexing/perf tests if data grows. |
+| R10 | Transaction category references are weakly validated in save use case. | Data integrity | Medium | Confirmed | `SaveTransaction` validation scope | Dangling references from future callers/import paths. | Validate category existence/type in use case or repository boundary. |
 
 ## 43. Recommended Development Roadmap
 
-### Phase 0 — Safety and Baseline
+### Phase 0 - Safety and Baseline
 
 Goals:
 
-- Preserve current clean state
-- Document and confirm the actual supported platforms
-- Decide whether seeded demo expenses are intentional product behavior
-- Decide whether local storage needs encryption
+- Preserve repository state.
+- Keep this report as the technical baseline.
+- Confirm target platforms and release goals.
 
 Tasks:
 
-- Keep repository clean and use this analysis as the baseline reference
-- Verify release signing requirements outside the codebase
-- Confirm whether budgets should remain a placeholder or be hidden until ready
+- Re-run `git status --short`, `flutter analyze`, and relevant tests before each phase.
+- Confirm whether Android/iOS only, desktop, and/or web are intended targets.
+- Confirm whether existing user data must be migrated from legacy boxes.
+- Confirm release identifiers and signing ownership.
 
 Dependencies:
 
-- Product owner decisions
-- Store/account setup for release signing
+- Product owner/platform decisions.
 
 Risks:
 
-- Shipping without resolving release signing or storage policy
+- Starting feature work before platform/release decisions can create rework.
 
 Expected outcome:
 
-- A stable baseline for controlled feature development
+- Stable baseline for controlled changes.
 
-Files or modules likely affected later:
+Likely files/modules:
 
-- android/app/build.gradle.kts
-- lib/data/seed/provided_expenses_importer.dart
-- core storage layer
+- Documentation, project planning, no app source required.
 
-### Phase 1 — Critical Stability
+### Phase 1 - Critical Stability
 
 Goals:
 
-- Eliminate release-blocking configuration issues
-- Decide on placeholder visibility and demo-data behavior
+- Remove startup ambiguity and security/data-loss risks.
 
 Tasks:
 
-- Replace debug signing for release
-- Clarify budgets behavior
-- Confirm whether automatic demo imports should stay
+- Consolidate startup initialization into one path.
+- Ensure startup failures can render `StartupFailureScreen`.
+- Encrypt or sanitize quarantine storage.
+- Review secure storage fallback policy.
+- Add tests for bootstrap failure/idempotency and quarantine privacy.
 
 Dependencies:
 
-- External release configuration
+- Storage migration compatibility requirements.
 
 Risks:
 
-- Production release failure or confusing user data
+- Migration/storage changes can affect existing users.
 
 Expected outcome:
 
-- Release-ready configuration decisions are made
+- Safer startup and local data handling.
 
-### Phase 2 — Architecture and Reliability
+Likely files/modules:
+
+- `lib/main.dart`
+- `lib/app/masrofy_bootstrap_app.dart`
+- `lib/core/storage/`
+- `lib/di/service_locator.dart`
+- `test/startup/`
+- `test/core/storage/`
+
+### Phase 2 - Architecture and Reliability
 
 Goals:
 
-- Reduce ambiguity and make future changes safer
-
-- Improve test coverage for currently untested flows
+- Tighten dependency ownership and error behavior.
 
 Tasks:
 
-- Add integration tests for dashboard, transaction creation, category management, and wallet balance editing
-- Decide whether aggregate calculations should move out of widgets
-- Trim unused declared dependencies if they are not planned
+- Localize hardcoded Cubit error messages.
+- Centralize error/failure mapping.
+- Validate transaction category existence/type at a safer boundary.
+- Add readiness flags to wallet balance stream combination.
+- Consider moving dashboard summary computation into Cubit state.
 
 Dependencies:
 
-- Test strategy and product scope
+- L10n copy decisions.
 
 Risks:
 
-- Over-refactoring before product decisions are finalized
+- Behavioral changes require focused regression tests.
 
 Expected outcome:
 
-- Lower regression risk and better future maintainability
+- More predictable state and data integrity.
 
-### Phase 3 — User Experience
+Likely files/modules:
+
+- `lib/presentation/cubits/`
+- `lib/domain/usecases/transactions/`
+- `lib/domain/usecases/wallets/`
+- `lib/l10n/`
+
+### Phase 3 - User Experience
 
 Goals:
 
-- Finish visual and interaction polish
+- Improve platform UX, accessibility, and export reliability.
 
 Tasks:
 
-- Implement budgets properly or hide it until implemented
-- Improve loading and empty-state polish where needed
-- Validate responsive behavior on larger screens
+- Replace manual restore path entry with file picker or platform-specific flow.
+- Verify RTL layouts and text overflow on real viewports.
+- Bundle PDF fonts or otherwise guarantee Arabic PDF rendering.
+- Review empty/loading/error states across screens.
+- Add accessibility labels where needed.
 
 Dependencies:
 
-- Product design direction
+- Target platform decision.
 
 Risks:
 
-- UI polish without feature clarity
+- File picker/export behavior differs by platform.
 
 Expected outcome:
 
-- More consistent and polished user experience
+- Better production UX across supported devices.
 
-### Phase 4 — Feature Development
+Likely files/modules:
+
+- `lib/presentation/screens/settings/settings_screen.dart`
+- `lib/data/export/`
+- `lib/presentation/screens/`
+- `lib/presentation/widgets/`
+
+### Phase 4 - Feature Development
 
 Goals:
 
-- Add new value only after the base flows are stable
+- Add new user-facing functionality after baseline risks are controlled.
 
-Tasks:
+Safe feature candidates:
 
-- Expand reporting and budgeting
-- Decide whether export features should use excel, pdf, or printing
-- Only add network or sync features if a backend is actually planned
+- Better search/filter presets.
+- Recurring transactions.
+- Budget notifications/reminders if permissions are added carefully.
+- Import from CSV/Excel.
+- Additional report periods.
+- Optional cloud sync, only after defining backend/auth/security design.
 
 Dependencies:
 
-- Stable architecture and release config
+- Stable storage schema and migration policy.
+- Test coverage for each new behavior.
 
 Risks:
 
-- Feature creep into unsupported dependencies
+- New features can increase data integrity and platform permission complexity.
 
 Expected outcome:
 
-- A controlled feature backlog with clear scope
+- Feature growth without destabilizing local data.
 
-### Phase 5 — Release Readiness
+Likely files/modules:
+
+- Feature-specific Cubits/screens/use cases/repositories.
+
+### Phase 5 - Release Readiness
 
 Goals:
 
-- Prepare for store submission or wider distribution
+- Prepare for store or public distribution.
 
 Tasks:
 
-- Verify signing, bundle IDs, metadata, and privacy posture
-- Re-run analysis and tests
-- Confirm store assets and policy requirements externally
+- Replace template package IDs and app metadata.
+- Verify Android signing and iOS provisioning externally.
+- Update web manifest if web is supported.
+- Decide analytics/crash reporting.
+- Complete privacy/data safety review.
+- Run full regression tests on target platforms.
+- Prepare store assets and release checklist.
 
 Dependencies:
 
-- Google Play Console / App Store Connect / platform store decisions
+- Store accounts, signing credentials, product metadata.
 
 Risks:
 
-- Missing external configuration that cannot be verified in code
+- External configuration gaps can block release even when code passes tests.
 
 Expected outcome:
 
-- Release candidate readiness
+- Release-ready configuration and verified runtime behavior.
+
+Likely files/modules:
+
+- `android/`
+- `ios/`
+- `macos/`
+- `windows/`
+- `web/`
+- store-facing documentation outside app source.
 
 ## 44. Safe Development Guidelines for Future Changes
 
-1. Read this analysis file first before making changes.
-2. Read rules.md and any other project instruction files before editing.
-3. Check Git status before modifying anything.
-4. Never overwrite or revert existing user changes.
-5. Trace the full dependency chain before changing a Cubit, use case, repository, router, or shared widget.
-6. Keep generated files treated as generated code.
-7. Do not change unrelated files while working a narrow task.
-8. Preserve backward compatibility for Hive-stored data unless a migration is explicitly planned.
-9. Add or update tests for behavioral changes.
-10. Run flutter analyze and relevant tests after each development phase.
-11. Do not introduce new dependencies unless the product need is clear.
-12. Do not modify signing, release, or store configuration unless that is the task.
-13. Do not expose secrets or copy sensitive values into code or docs.
-14. Treat budgets as incomplete until a real implementation exists.
-15. Decide explicitly whether seeded demo data belongs in production before changing it.
+- Inspect `git status --short` before changing anything.
+- Do not overwrite or revert pre-existing user changes unless explicitly instructed.
+- Keep changes scoped to the requested feature or fix.
+- Preserve local data compatibility and migration paths.
+- Do not edit generated files manually.
+- Add or update tests for behavior changes.
+- Run `flutter analyze` and targeted tests after changes.
+- Run the full `flutter test` suite before broad or release-facing changes.
+- Do not change dependency versions without explicit approval and a migration plan.
+- Do not change app version numbers, package IDs, signing, or release config unless explicitly requested.
+- Do not introduce remote services, analytics, payments, or permissions without product/security review.
+- Treat backup/restore, storage migration, app lock, and encryption code as high-risk areas.
+- Keep Arabic and English localization in sync.
+- Verify web compatibility before adding imports from `dart:io`.
 
 ## 45. Instructions for Future AI Coding Agents
 
-1. Read this report before touching the repository.
-2. Read all repository instruction files, including rules.md and any future AI guidance docs.
-3. Inspect Git status first and report existing changes before editing.
-4. Do not overwrite pre-existing user work.
-5. Analyze the complete data flow before changing storage, state, or routing.
-6. Keep edits narrow and avoid unrelated refactors.
-7. Preserve generated files and do not hand-edit them unless explicitly required.
-8. Do not change package versions, app versions, signing, or release settings without explicit instruction.
-9. Add or update tests when you change behavior.
-10. Run static analysis and the relevant tests after each phase.
-11. Report every modified file and every external assumption.
-12. Stop and ask if a flow touches unknown external configuration such as store consoles or backend services.
-13. Do not remove legacy code silently.
-14. Keep Hive schema and migration behavior backward-compatible.
-15. Treat the demo-expense importer and budgets screen as intentional review points, not as proven product commitments.
+1. Read `FLUTTER_PROJECT_ANALYSIS.md` first.
+2. Read all repository instruction files, especially `rules.md`, `pubspec.yaml`, `analysis_options.yaml`, and `l10n.yaml`.
+3. Inspect Git status before modifying anything.
+4. Never overwrite pre-existing user changes.
+5. Analyze the full dependency chain before changing a service, model, provider, bloc, Cubit, route, or shared widget.
+6. Do not change unrelated files.
+7. Keep each development phase isolated.
+8. Add or update tests for behavioral changes.
+9. Run static analysis and relevant tests after each phase.
+10. Report every modified file.
+11. Report assumptions and externally unverified requirements.
+12. Do not expose or modify secrets.
+13. Do not change package versions unless explicitly requested.
+14. Do not change application version numbers unless explicitly requested.
+15. Do not generate release builds unless explicitly requested.
+16. Do not modify subscription, authentication, storage, or migration logic without tracing the entire existing flow.
+17. Preserve backward compatibility with existing users and stored local data.
+18. Treat generated files as generated code.
+19. Do not silently remove legacy code.
+20. Stop and report conflicts instead of guessing.
 
-Project-specific agent rules inferred from the codebase:
+Project-specific rules:
 
-- Prefer the existing Cubit + GetIt + Hive stack for local features.
-- Keep localization updates in ARB files and allow generation to update the derived files.
-- Use the theme tokens in core/theme rather than hardcoding new spacing or color systems.
-- Avoid adding network or auth infrastructure unless the product scope changes.
+- Treat `lib/core/storage/`, `lib/data/backup/`, `lib/core/security/`, and `lib/di/service_locator.dart` as high-risk.
+- Do not assume Firebase/backend/auth exists; repository evidence shows a local-first app.
+- Do not mark web support fixed unless a web build/runtime path is verified.
+- Do not rely on biometric app lock until a real biometric plugin and flow are implemented.
+- Do not add new storage boxes without updating `StorageSchema`, migrations, backup/restore, and tests.
+- Do not add user-facing strings without updating both ARB files.
+- Do not change default categories without checking category IDs, localization keys, budgets, reports, backup, and tests.
+- Do not change transaction/category/budget models without updating migration and restore validation.
 
 ## 46. Important Files Reference
 
 Application entry points:
 
-- [lib/main.dart](lib/main.dart) — startup sequence, Hive initialization, DI registration, and app launch
-- [lib/app/masrofy_app.dart](lib/app/masrofy_app.dart) — root widget, router injection, and app-wide Cubits
+| File | Purpose |
+| --- | --- |
+| `lib/main.dart` | Main entry point; initializes Flutter binding, path URL strategy, storage, DI, and runs app. |
+| `lib/app/masrofy_bootstrap_app.dart` | Startup loading/failure/success wrapper. |
+| `lib/app/masrofy_app.dart` | Root `MaterialApp.router` and global providers. |
 
 Routing:
 
-- [lib/routing/app_router.dart](lib/routing/app_router.dart) — shell route, tab routes, extra settings routes, and not-found handling
+| File | Purpose |
+| --- | --- |
+| `lib/routing/app_router.dart` | GoRouter routes, shell route, and transitions. |
+| `lib/presentation/shell/main_shell.dart` | Responsive app shell and primary navigation UI. |
 
 Dependency injection:
 
-- [lib/di/service_locator.dart](lib/di/service_locator.dart) — GetIt registrations, data seeding, and router wiring
+| File | Purpose |
+| --- | --- |
+| `lib/di/service_locator.dart` | GetIt object graph and default category initialization. |
 
-Storage and settings:
+Theme/localization:
 
-- [lib/core/storage/local_storage_bootstrap.dart](lib/core/storage/local_storage_bootstrap.dart) — Hive initialization and box opening
-- [lib/core/settings/app_settings_store.dart](lib/core/settings/app_settings_store.dart) — persisted locale/theme settings store
+| File | Purpose |
+| --- | --- |
+| `lib/core/theme/app_theme.dart` | Light/dark Material theme and theme extension. |
+| `lib/core/theme/app_design_tokens.dart` | Spacing, breakpoints, radii, and motion tokens. |
+| `l10n.yaml` | Flutter localization generation config. |
+| `lib/l10n/app_ar.arb` | Arabic strings/template. |
+| `lib/l10n/app_en.arb` | English strings. |
 
-Theme and UI tokens:
+Storage/security:
 
-- [lib/core/theme/app_theme.dart](lib/core/theme/app_theme.dart) — light/dark Material 3 themes
-- [lib/core/theme/app_design_tokens.dart](lib/core/theme/app_design_tokens.dart) — spacing, radii, elevations, and breakpoints
-- [lib/core/theme/masrofy_theme_extension.dart](lib/core/theme/masrofy_theme_extension.dart) — semantic color extension
+| File | Purpose |
+| --- | --- |
+| `lib/core/storage/local_storage_bootstrap.dart` | Hive initialization and storage migration entry. |
+| `lib/core/storage/storage_schema.dart` | Box names and schema version. |
+| `lib/core/storage/migrations/storage_migration_manager.dart` | Legacy migration and validation. |
+| `lib/core/security/app_lock_service.dart` | PIN setup/verification/lockout/privacy timeout. |
+| `lib/core/security/secure_value_store.dart` | Secure storage adapter and fallback. |
+| `lib/core/settings/app_settings_store.dart` | Locale/theme/privacy settings persistence. |
 
-Domain:
+Data/domain:
 
-- [lib/domain/entities/category.dart](lib/domain/entities/category.dart) — category entity and behavior enum
-- [lib/domain/entities/financial_transaction.dart](lib/domain/entities/financial_transaction.dart) — transaction entity
-- [lib/domain/entities/wallet_balance.dart](lib/domain/entities/wallet_balance.dart) — wallet balance entity
-- [lib/domain/usecases/categories/save_custom_category.dart](lib/domain/usecases/categories/save_custom_category.dart) — category validation and save rules
-- [lib/domain/usecases/transactions/save_transaction.dart](lib/domain/usecases/transactions/save_transaction.dart) — transaction validation and persistence
-- [lib/domain/usecases/wallets/set_wallet_current_balance.dart](lib/domain/usecases/wallets/set_wallet_current_balance.dart) — current balance calibration
+| File | Purpose |
+| --- | --- |
+| `lib/data/catalog/default_category_catalog.dart` | Built-in category definitions. |
+| `lib/data/datasources/` | Hive/in-memory local data sources. |
+| `lib/data/repositories/` | Repository implementations. |
+| `lib/data/models/` | JSON/persistence models. |
+| `lib/domain/entities/` | Business entities. |
+| `lib/domain/repositories/` | Repository contracts. |
+| `lib/domain/usecases/` | Business use cases. |
 
-Data layer:
+Features:
 
-- [lib/data/catalog/default_category_catalog.dart](lib/data/catalog/default_category_catalog.dart) — built-in category seed data
-- [lib/data/seed/provided_expenses_importer.dart](lib/data/seed/provided_expenses_importer.dart) — fixed demo expenses imported on startup
-- [lib/data/models/category_model.dart](lib/data/models/category_model.dart) — category JSON mapping and legacy normalization
-- [lib/data/models/financial_transaction_model.dart](lib/data/models/financial_transaction_model.dart) — transaction JSON mapping
-- [lib/data/models/wallet_balance_model.dart](lib/data/models/wallet_balance_model.dart) — wallet balance JSON mapping
+| File/Directory | Purpose |
+| --- | --- |
+| `lib/presentation/screens/dashboard/` | Dashboard UI. |
+| `lib/presentation/screens/history/` | Transaction history UI. |
+| `lib/presentation/screens/reports/` | Reports UI and charts. |
+| `lib/presentation/screens/budgets/` | Budget UI. |
+| `lib/presentation/screens/settings/` | Settings, category management, wallet balances. |
+| `lib/presentation/widgets/transactions/` | Transaction editor/list/formatting widgets. |
+| `lib/presentation/cubits/` | Presentation state owners. |
 
-Presentation and features:
+Backup/export:
 
-- [lib/presentation/cubits/settings/app_settings_cubit.dart](lib/presentation/cubits/settings/app_settings_cubit.dart) — locale and theme state
-- [lib/presentation/cubits/transactions/transactions_cubit.dart](lib/presentation/cubits/transactions/transactions_cubit.dart) — transaction and category stream state
-- [lib/presentation/cubits/categories/categories_cubit.dart](lib/presentation/cubits/categories/categories_cubit.dart) — category management state
-- [lib/presentation/cubits/wallets/wallet_balances_cubit.dart](lib/presentation/cubits/wallets/wallet_balances_cubit.dart) — wallet balance summaries
-- [lib/presentation/screens/dashboard/dashboard_screen.dart](lib/presentation/screens/dashboard/dashboard_screen.dart) — dashboard UI
-- [lib/presentation/screens/history/history_screen.dart](lib/presentation/screens/history/history_screen.dart) — history UI
-- [lib/presentation/screens/reports/reports_screen.dart](lib/presentation/screens/reports/reports_screen.dart) — reports UI
-- [lib/presentation/screens/settings/settings_screen.dart](lib/presentation/screens/settings/settings_screen.dart) — settings hub
-- [lib/presentation/screens/settings/categories/categories_screen.dart](lib/presentation/screens/settings/categories/categories_screen.dart) — category management UI
-- [lib/presentation/screens/settings/wallets/wallet_balances_screen.dart](lib/presentation/screens/settings/wallets/wallet_balances_screen.dart) — wallet balance UI
-- [lib/presentation/widgets/transactions/add_transaction_sheet.dart](lib/presentation/widgets/transactions/add_transaction_sheet.dart) — transaction creation form
-
-Localization:
-
-- [lib/l10n/app_ar.arb](lib/l10n/app_ar.arb) — Arabic source strings
-- [lib/l10n/app_en.arb](lib/l10n/app_en.arb) — English source strings
-- [lib/l10n/generated/app_localizations.dart](lib/l10n/generated/app_localizations.dart) — generated localization API
-
-Tests:
-
-- [test/widget_test.dart](test/widget_test.dart) — high-level app shell behavior
-- [test/data/repositories/category_repository_impl_test.dart](test/data/repositories/category_repository_impl_test.dart) — category repository behavior
-- [test/data/repositories/transaction_repository_impl_test.dart](test/data/repositories/transaction_repository_impl_test.dart) — transaction repository behavior
-- [test/domain/usecases/categories/category_usecases_test.dart](test/domain/usecases/categories/category_usecases_test.dart) — category business rules
-- [test/domain/usecases/transactions/transaction_usecases_test.dart](test/domain/usecases/transactions/transaction_usecases_test.dart) — transaction validation
-- [test/domain/usecases/wallets/wallet_balance_usecases_test.dart](test/domain/usecases/wallets/wallet_balance_usecases_test.dart) — wallet balance calculations
+| File | Purpose |
+| --- | --- |
+| `lib/data/backup/backup_restore_service.dart` | Backup creation, restore validation, rollback, delete local data. |
+| `lib/data/export/data_export_service.dart` | Export orchestration. |
+| `lib/data/export/transaction_excel_exporter.dart` | Excel transaction export. |
+| `lib/data/export/report_pdf_exporter.dart` | PDF report export. |
+| `lib/core/export/local_export_writer.dart` | Writes export files to local documents directory. |
 
 Platform configuration:
 
-- [android/app/build.gradle.kts](android/app/build.gradle.kts) — Android build configuration
-- [android/app/src/main/AndroidManifest.xml](android/app/src/main/AndroidManifest.xml) — Android manifest
-- [ios/Runner/Info.plist](ios/Runner/Info.plist) — iOS app metadata
-- [web/index.html](web/index.html) — web app shell metadata
-- [web/manifest.json](web/manifest.json) — web manifest
+| File | Purpose |
+| --- | --- |
+| `android/app/build.gradle.kts` | Android package/build/signing configuration. |
+| `android/app/src/main/AndroidManifest.xml` | Android app manifest. |
+| `android/key.properties.example` | Placeholder signing config format. |
+| `ios/Runner/Info.plist` | iOS app metadata and orientations. |
+| `ios/Runner.xcodeproj/project.pbxproj` | iOS bundle ID/build settings. |
+| `macos/Runner/Configs/AppInfo.xcconfig` | macOS product ID/name. |
+| `web/manifest.json` | Web/PWA metadata. |
+
+Tests:
+
+| Path | Purpose |
+| --- | --- |
+| `test/core/` | Core storage/security tests. |
+| `test/data/` | Data source/model/repository/backup/export tests. |
+| `test/domain/` | Entity/use-case tests. |
+| `test/presentation/` | Cubit, screen, widget, formatter tests. |
+| `test/startup/` | Bootstrap and DI tests. |
+| `test/widget_test.dart` | Root widget/user-flow tests. |
 
 ## 47. Open Questions
 
-Questions that cannot be answered from code alone:
-
-- Is the budgets screen intended to stay a placeholder for now, or should it be hidden until implemented?
-- Should the fixed demo expenses remain in production builds?
-- Does the app need encryption for local Hive-stored financial data?
-- Are web, desktop, and mobile all intended release targets or just scaffolded platforms?
-- Which release signing configuration is intended for production?
-- Is there a planned backend, sync service, or export workflow for later phases?
-- Which of the currently unused dependencies are reserved for future features?
-- Are the seeded sample names and dates acceptable as on-device demo data?
+- Is Android/iOS the only intended production target, or must web/desktop remain supported?
+- Should the app remain fully offline, or is future cloud sync planned?
+- Are there existing users with legacy Hive boxes that must be preserved through every migration?
+- Should quarantined records be user-recoverable, developer-only diagnostics, or removed entirely?
+- Is biometric unlock a required feature or a leftover placeholder?
+- What are the final Android application ID and iOS/macOS bundle identifiers?
+- What app name capitalization should be used across all platforms and stores?
+- Should PDF reports support Arabic text fully offline?
+- Should backup/restore use a file picker, platform document provider, or manual path entry?
+- Are analytics/crash reporting required for release?
+- What privacy/data-retention policy should apply to local backups and exports?
+- Should cash wallet balances be tracked, or only InstaPay and Vodafone Cash?
+- Are current default categories final product taxonomy?
+- Which pre-existing deleted Markdown/prompt files should remain deleted?
+- Are the untracked logo files under `assets/images/logos/` intended product assets?
 
 ## 48. Final Project Health Assessment
 
-Ratings are from 1 to 10 and reflect the current repository state only.
+Ratings:
 
-| Area | Rating | Explanation |
-|---|---:|---|
-| Architecture | 8 | Clear layer separation and local repositories, with minor mixing of summary logic into widgets |
-| Code organization | 8 | Well-structured folders and focused files, though budgets and demo data need product clarification |
-| State management | 8 | Cubit usage is consistent and disposal is handled correctly |
-| Reliability | 7 | Tests pass and analyze is clean, but release config and demo-data behavior are not production-hardened |
-| Security | 4 | Plain-text local data and debug release signing are the main concerns |
-| Performance | 7 | Slivers and local streams are good, but full-list recomputation may scale poorly |
-| Test coverage | 7 | Solid unit/widget coverage, but no integration tests or measured coverage report in this analysis |
-| Maintainability | 7 | Mostly clean boundaries, with some unused dependencies and placeholder code to resolve |
-| UI consistency | 8 | Material 3 and centralized tokens give a coherent UI system |
-| Release readiness | 5 | The app is feature-usable but not yet store-ready due to signing and configuration gaps |
+| Area | Rating | Evidence-based explanation |
+| --- | --- | --- |
+| Architecture | 8/10 | Clear layered architecture with domain/use case/repository separation; minor coupling through service locator in UI and duplicated bootstrap. |
+| Code organization | 8/10 | Files are organized by layer and responsibility; no major duplicated frameworks detected. |
+| State management | 7/10 | Cubit usage is consistent and tested; some stream readiness and error-localization issues remain. |
+| Reliability | 7/10 | Tests pass and backup/restore is robust; startup duplication and partial-stream states need stabilization. |
+| Security | 6/10 | Encrypted current boxes and hashed PINs are good; unencrypted quarantine and secure-storage fallback are notable risks. |
+| Performance | 7/10 | Suitable for modest local datasets; full-list filtering/reporting and duplicate startup may become costly. |
+| Test coverage | 9/10 | 111 tests passed across core, data, domain, Cubits, screens, and widgets; no integration/golden tests detected. |
+| Maintainability | 8/10 | Good layering and tests; error handling, localization, and bootstrap ownership need cleanup. |
+| UI consistency | 7/10 | Theme/design tokens and reusable widgets exist; visual/runtime QA was not performed. |
+| Release readiness | 5/10 | App code is healthy, but identifiers, metadata, signing, monitoring, platform targets, and privacy review require work. |
 
-Overall Project Health: Moderate
+Overall Project Health:
 
-Development Readiness: Ready with minor precautions
+`Good local-first foundation with specific stabilization and release-readiness gaps.`
 
-Production Readiness: Requires stabilization
+Development Readiness:
 
-Recommended Immediate Next Step: finalize the release/security baseline by deciding on demo-data import, storage protection, and proper Android/iOS release configuration before expanding major features.
+`Ready with minor precautions.`
+
+Production Readiness:
+
+`Requires stabilization.`
+
+Recommended Immediate Next Step:
+
+`Stabilize startup initialization and secure quarantine storage, then confirm official platform targets and release identifiers.`

@@ -35,6 +35,7 @@ void main() {
         localeCode: 'en',
         themeMode: ThemeMode.light,
         hideFinancialAmounts: true,
+        onboardingCompleted: true,
       ),
     );
     cubit.reload();
@@ -42,6 +43,20 @@ void main() {
     expect(cubit.state.locale, const Locale('en'));
     expect(cubit.state.themeMode, ThemeMode.light);
     expect(cubit.state.hideFinancialAmounts, isTrue);
+
+    await cubit.close();
+  });
+
+  test('completes onboarding and persists the flag', () async {
+    final store = InMemoryAppSettingsStore();
+    final cubit = AppSettingsCubit(store: store);
+
+    expect(cubit.state.onboardingCompleted, isFalse);
+
+    await cubit.completeOnboarding();
+
+    expect(cubit.state.onboardingCompleted, isTrue);
+    expect(store.onboardingCompleted, isTrue);
 
     await cubit.close();
   });

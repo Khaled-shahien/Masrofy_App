@@ -30,7 +30,7 @@ void main() {
 
     expect(file.fileName, 'masrofy_backup_20260712_0905.json');
     expect(backup['backupFormatVersion'], 1);
-    expect(backup['schemaVersion'], 2);
+    expect(backup['schemaVersion'], 3);
     expect(backup['createdAt'], '2026-07-12T09:05:00.000');
     expect(backup['data']['transactions'], hasLength(1));
     expect(backup['data']['categories'], hasLength(1));
@@ -42,6 +42,7 @@ void main() {
         'localeCode': 'en',
         'themeMode': 'dark',
         'hideFinancialAmounts': false,
+        'onboardingCompleted': false,
       },
     );
     expect(jsonEncode(backup), isNot(contains('pin')));

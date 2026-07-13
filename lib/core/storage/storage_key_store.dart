@@ -11,6 +11,22 @@ abstract interface class StorageKeyStore {
   Future<void> saveEncryptionKey(String key);
 }
 
+enum StorageEncryptionFailureReason {
+  unavailable,
+  missingKeyForExistingData,
+  invalidKey,
+}
+
+class StorageEncryptionException implements Exception {
+  const StorageEncryptionException(this.reason, this.message);
+
+  final StorageEncryptionFailureReason reason;
+  final String message;
+
+  @override
+  String toString() => 'StorageEncryptionException($reason): $message';
+}
+
 /// Stores the encryption key in platform secure storage.
 class FlutterSecureStorageKeyStore implements StorageKeyStore {
   FlutterSecureStorageKeyStore([FlutterSecureStorage? storage])
@@ -52,15 +68,53 @@ class StorageEncryptionService {
   final StorageKeyStore _keyStore;
   final Random _random;
 
-  Future<Uint8List> readOrCreateKeyBytes() async {
-    final existing = await _keyStore.readEncryptionKey();
+  Future<Uint8List> readOrCreateKeyBytes({
+    bool encryptedDataExists = false,
+  }) async {
+    final existing = await _readExistingKey();
     if (existing != null && existing.isNotEmpty) {
-      return base64Decode(existing);
+      try {
+        final decoded = base64Decode(existing);
+        if (decoded.length != 32) {
+          throw const FormatException('Invalid Hive key length.');
+        }
+        return decoded;
+      } on FormatException {
+        throw const StorageEncryptionException(
+          StorageEncryptionFailureReason.invalidKey,
+          'The stored encryption key is invalid.',
+        );
+      }
+    }
+
+    if (encryptedDataExists) {
+      throw const StorageEncryptionException(
+        StorageEncryptionFailureReason.missingKeyForExistingData,
+        'Encrypted local data exists but its secure storage key is missing.',
+      );
     }
 
     final generated = _generateKeyBytes();
-    await _keyStore.saveEncryptionKey(base64Encode(generated));
+    try {
+      await _keyStore.saveEncryptionKey(base64Encode(generated));
+    } on Object {
+      throw const StorageEncryptionException(
+        StorageEncryptionFailureReason.unavailable,
+        'Secure storage is unavailable for the local encryption key.',
+      );
+    }
     return generated;
+  }
+
+  Future<String?> _readExistingKey() async {
+    try {
+      return await _keyStore.readEncryptionKey();
+    } on Object {
+      throw const StorageEncryptionException(
+        StorageEncryptionFailureReason.unavailable,
+        'Secure storage is unavailable for the local encryption key.',
+      );
+    }
   }
 
   Uint8List _generateKeyBytes() {

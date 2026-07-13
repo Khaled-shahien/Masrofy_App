@@ -1,6 +1,8 @@
 {
   "@@locale": "ar",
-  "appName": "مصروفي",
+  "appName": "Masrofy",
+  "settingsAboutTitle": "حول Masrofy",
+  "settingsAboutDescription": "تطبيق محلي أولًا لمتابعة الدخل والمصاريف والميزانيات والتقارير والمحافظ والنسخ الاحتياطية.",
   "@appName": {
     "description": "Application name."
   },
@@ -132,6 +134,8 @@
   "transactionAmountRequired": "أدخل مبلغًا صحيحًا",
   "transactionCategoryLabel": "التصنيف",
   "transactionCategoryRequired": "اختر التصنيف",
+  "transactionUnknownCategoryValidation": "اختر تصنيفًا متاحًا",
+  "transactionCategoryTypeValidation": "اختر تصنيفًا مناسبًا لنوع المعاملة",
   "transactionPersonLabel": "اسم الشخص",
   "transactionWalletLabel": "المحفظة",
   "transactionNoteLabel": "ملاحظة",
@@ -239,11 +243,20 @@
   "appLockUnlockTitle": "مصروفي مقفل",
   "appLockUnlockBody": "أدخل PIN للمتابعة.",
   "appLockUnlockAction": "فتح",
+  "appLockBiometricUnlockAction": "استخدام البصمة أو الوجه",
+  "appLockBiometricReason": "فتح Masrofy",
+  "appLockBiometricUnavailable": "فتح القفل بالبصمة أو الوجه غير متاح. استخدم PIN.",
+  "appLockBiometricEnableTitle": "تفعيل فتح القفل بالبصمة أو الوجه",
+  "appLockBiometricEnableSubtitle": "استخدم بصمة الإصبع أو الوجه عند توفرها. يظل PIN متاحًا كبديل.",
+  "appLockBiometricDisableTitle": "تعطيل فتح القفل بالبصمة أو الوجه",
+  "appLockBiometricEnabledMessage": "تم تفعيل فتح القفل بالبصمة أو الوجه",
+  "appLockBiometricDisabledMessage": "تم تعطيل فتح القفل بالبصمة أو الوجه",
   "appLockIncorrectPin": "PIN غير صحيح",
   "appLockLockedOutMessage": "محاولات كثيرة جدًا. حاول لاحقًا.",
   "localPrivacyExplanation": "يحفظ مصروفي البيانات محليًا على هذا الجهاز ولا يحتوي حاليًا على مزامنة خلفية. النسخ الاحتياطية التي تنشئها تحت تحكمك. إزالة التطبيق قد تزيل البيانات المحلية إذا لم تكن هناك نسخة احتياطية، كما أن الوصول على مستوى الجهاز قد يؤثر على الخصوصية.",
-  "backupPathLabel": "مسار ملف النسخة الاحتياطية",
   "backupImportDialogTitle": "استيراد نسخة احتياطية",
+  "backupImportInvalidFile": "اختر ملف نسخة احتياطية JSON صالحًا من Masrofy",
+  "backupSelectedFile": "الملف المحدد: {fileName}",
   "backupImportModeLabel": "طريقة الاستعادة",
   "backupImportMerge": "دمج",
   "backupImportReplace": "استبدال",
@@ -277,6 +290,8 @@
   "@settingsCategoriesSubtitle": {
     "description": "Settings entry subtitle for category management."
   },
+  "settingsViewOnboardingTitle": "عرض التعريف مرة أخرى",
+  "settingsViewOnboardingSubtitle": "إعادة عرض الجولة الترحيبية بدون تغيير إعدادك",
   "categoriesTitle": "التصنيفات",
   "@categoriesTitle": {
     "description": "Category management screen title."
@@ -529,5 +544,18 @@
   "notFoundBody": "الوجهة المطلوبة غير متاحة.",
   "@notFoundBody": {
     "description": "Route error body."
-  }
+  },
+  "onboardingSkip": "تخطي",
+  "onboardingNext": "التالي",
+  "onboardingBack": "رجوع",
+  "onboardingGetStarted": "ابدأ",
+  "onboardingPageIndicator": "الصفحة {page} من {count}",
+  "onboardingWelcomeTitle": "مرحبًا بك في Masrofy",
+  "onboardingWelcomeBody": "تابع دخلك ومصاريفك اليومية بوضوح مع بقاء بياناتك على هذا الجهاز.",
+  "onboardingBudgetsTitle": "ميزانيات وتقارير",
+  "onboardingBudgetsBody": "حدد ميزانيات شهرية للتصنيفات، تابع تقدمك، وراجع رسومًا توضح أين تذهب الأموال.",
+  "onboardingPrivacyTitle": "خصوصية من البداية",
+  "onboardingPrivacyBody": "أخفِ المبالغ، واستخدم قفل PIN، ويمكنك الفتح بالبصمة أو الوجه عندما يدعم جهازك ذلك.",
+  "onboardingBackupTitle": "نسخ احتياطي وتصدير",
+  "onboardingBackupBody": "أنشئ نسخًا احتياطية محلية وصدّر التقارير عندما تحتاج للاحتفاظ بسجلاتك أو مشاركتها."
 }

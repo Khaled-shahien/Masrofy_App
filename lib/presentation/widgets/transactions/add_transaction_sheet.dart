@@ -70,8 +70,13 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
           previous.errorMessage != current.errorMessage &&
           current.errorMessage != null,
       listener: (context, state) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(state.errorMessage!)),
+          SnackBar(
+            content: Text(
+              _localizedTransactionError(l10n, state.errorMessage!),
+            ),
+          ),
         );
       },
       builder: (context, state) {
@@ -188,6 +193,7 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
                               key: const ValueKey(
                                 'transaction_category_field',
                               ),
+                              isExpanded: true,
                               initialValue:
                                   categories.any(
                                     (category) => category.id == _categoryId,
@@ -348,6 +354,16 @@ class _AddTransactionSheetState extends State<AddTransactionSheet> {
   }
 }
 
+String _localizedTransactionError(AppLocalizations l10n, String error) {
+  return switch (error) {
+    'invalidAmount' => l10n.transactionAmountRequired,
+    'missingCategory' => l10n.transactionCategoryRequired,
+    'unknownCategory' => l10n.transactionUnknownCategoryValidation,
+    'categoryTypeMismatch' => l10n.transactionCategoryTypeValidation,
+    _ => error,
+  };
+}
+
 class _CategoryOption extends StatelessWidget {
   const _CategoryOption({required this.category});
 
@@ -357,16 +373,18 @@ class _CategoryOption extends StatelessWidget {
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context);
     return Row(
-      mainAxisSize: MainAxisSize.min,
       children: [
         Icon(
           categoryIconFor(category.iconKey),
           color: Color(category.colorValue),
         ),
         const SizedBox(width: 8),
-        Text(
-          localizedCategoryName(localizations, category),
-          overflow: TextOverflow.ellipsis,
+        Expanded(
+          child: Text(
+            localizedCategoryName(localizations, category),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ),
       ],
     );

@@ -10,22 +10,39 @@ abstract interface class SecureValueStore {
   Future<void> delete(String key);
 }
 
+enum SecureValueFailureReason { unavailable }
+
+class SecureValueStoreException implements Exception {
+  const SecureValueStoreException(this.reason, this.message);
+
+  final SecureValueFailureReason reason;
+  final String message;
+
+  @override
+  String toString() => 'SecureValueStoreException($reason): $message';
+}
+
 /// Secure storage backed by the platform keychain/keystore where available.
 class FlutterSecureValueStore implements SecureValueStore {
   FlutterSecureValueStore([FlutterSecureStorage? storage])
     : _storage = storage ?? const FlutterSecureStorage();
 
   final FlutterSecureStorage _storage;
-  final Map<String, String> _fallbackValues = <String, String>{};
 
   @override
   Future<String?> read(String key) async {
     try {
       return await _storage.read(key: key);
-    } on MissingPluginException {
-      return _fallbackValues[key];
-    } on PlatformException {
-      return _fallbackValues[key];
+    } on MissingPluginException catch (error) {
+      throw SecureValueStoreException(
+        SecureValueFailureReason.unavailable,
+        'Secure storage plugin is unavailable: ${error.message ?? 'missing plugin'}.',
+      );
+    } on PlatformException catch (error) {
+      throw SecureValueStoreException(
+        SecureValueFailureReason.unavailable,
+        'Secure storage is unavailable: ${error.code}.',
+      );
     }
   }
 
@@ -38,20 +55,32 @@ class FlutterSecureValueStore implements SecureValueStore {
   Future<void> delete(String key) async {
     try {
       await _storage.delete(key: key);
-    } on MissingPluginException {
-      _fallbackValues.remove(key);
-    } on PlatformException {
-      _fallbackValues.remove(key);
+    } on MissingPluginException catch (error) {
+      throw SecureValueStoreException(
+        SecureValueFailureReason.unavailable,
+        'Secure storage plugin is unavailable: ${error.message ?? 'missing plugin'}.',
+      );
+    } on PlatformException catch (error) {
+      throw SecureValueStoreException(
+        SecureValueFailureReason.unavailable,
+        'Secure storage is unavailable: ${error.code}.',
+      );
     }
   }
 
   Future<void> _write(String key, String value) async {
     try {
       await _storage.write(key: key, value: value);
-    } on MissingPluginException {
-      _fallbackValues[key] = value;
-    } on PlatformException {
-      _fallbackValues[key] = value;
+    } on MissingPluginException catch (error) {
+      throw SecureValueStoreException(
+        SecureValueFailureReason.unavailable,
+        'Secure storage plugin is unavailable: ${error.message ?? 'missing plugin'}.',
+      );
+    } on PlatformException catch (error) {
+      throw SecureValueStoreException(
+        SecureValueFailureReason.unavailable,
+        'Secure storage is unavailable: ${error.code}.',
+      );
     }
   }
 }

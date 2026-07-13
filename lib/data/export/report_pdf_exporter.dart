@@ -1,7 +1,5 @@
-import 'dart:typed_data';
-
+import 'package:flutter/services.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 import '../../core/export/export_file_namer.dart';
 import '../../domain/entities/category.dart';
@@ -21,15 +19,20 @@ class ReportPdfExporter {
     required String dateRangeLabel,
     required String localeName,
   }) async {
+    final fonts = await _PdfFonts.load();
     final regularFont = localeName == 'ar'
-        ? await PdfGoogleFonts.notoSansArabicRegular()
-        : await PdfGoogleFonts.notoSansRegular();
-    final boldFont = localeName == 'ar'
-        ? await PdfGoogleFonts.notoSansArabicBold()
-        : await PdfGoogleFonts.notoSansBold();
+        ? fonts.arabicRegular
+        : fonts.latinRegular;
+    final boldFont = localeName == 'ar' ? fonts.arabicBold : fonts.latinBold;
     final theme = pw.ThemeData.withFont(
       base: regularFont,
       bold: boldFont,
+      fontFallback: [
+        fonts.arabicRegular,
+        fonts.arabicBold,
+        fonts.latinRegular,
+        fonts.latinBold,
+      ],
     );
     final document = pw.Document(theme: theme);
 
@@ -82,5 +85,38 @@ class ReportPdfExporter {
       mimeType: 'application/pdf',
       bytes: Uint8List.fromList(await document.save()),
     );
+  }
+}
+
+class _PdfFonts {
+  const _PdfFonts({
+    required this.arabicRegular,
+    required this.arabicBold,
+    required this.latinRegular,
+    required this.latinBold,
+  });
+
+  static const _arabicRegularAsset =
+      'assets/fonts/noto/NotoSansArabic-Regular.ttf';
+  static const _arabicBoldAsset = 'assets/fonts/noto/NotoSansArabic-Bold.ttf';
+  static const _latinRegularAsset = 'assets/fonts/noto/NotoSans-Regular.ttf';
+  static const _latinBoldAsset = 'assets/fonts/noto/NotoSans-Bold.ttf';
+
+  final pw.Font arabicRegular;
+  final pw.Font arabicBold;
+  final pw.Font latinRegular;
+  final pw.Font latinBold;
+
+  static Future<_PdfFonts> load() async {
+    return _PdfFonts(
+      arabicRegular: await _loadFont(_arabicRegularAsset),
+      arabicBold: await _loadFont(_arabicBoldAsset),
+      latinRegular: await _loadFont(_latinRegularAsset),
+      latinBold: await _loadFont(_latinBoldAsset),
+    );
+  }
+
+  static Future<pw.Font> _loadFont(String asset) async {
+    return pw.Font.ttf(await rootBundle.load(asset));
   }
 }

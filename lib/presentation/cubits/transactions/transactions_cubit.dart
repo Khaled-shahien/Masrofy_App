@@ -71,7 +71,7 @@ class TransactionsCubit extends Cubit<TransactionsState> {
       emit(state.copyWith(isSaving: false, clearError: true));
       return true;
     } on TransactionValidationException catch (error) {
-      emit(state.copyWith(isSaving: false, errorMessage: error.message));
+      emit(state.copyWith(isSaving: false, errorMessage: error.reason.name));
       return false;
     } on Object {
       emit(

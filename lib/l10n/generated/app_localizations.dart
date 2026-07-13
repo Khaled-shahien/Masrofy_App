@@ -101,8 +101,20 @@ abstract class AppLocalizations {
   /// Application name.
   ///
   /// In ar, this message translates to:
-  /// **'مصروفي'**
+  /// **'Masrofy'**
   String get appName;
+
+  /// No description provided for @settingsAboutTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'حول Masrofy'**
+  String get settingsAboutTitle;
+
+  /// No description provided for @settingsAboutDescription.
+  ///
+  /// In ar, this message translates to:
+  /// **'تطبيق محلي أولًا لمتابعة الدخل والمصاريف والميزانيات والتقارير والمحافظ والنسخ الاحتياطية.'**
+  String get settingsAboutDescription;
 
   /// Dashboard navigation tab label.
   ///
@@ -511,6 +523,18 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'اختر التصنيف'**
   String get transactionCategoryRequired;
+
+  /// No description provided for @transactionUnknownCategoryValidation.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر تصنيفًا متاحًا'**
+  String get transactionUnknownCategoryValidation;
+
+  /// No description provided for @transactionCategoryTypeValidation.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر تصنيفًا مناسبًا لنوع المعاملة'**
+  String get transactionCategoryTypeValidation;
 
   /// No description provided for @transactionPersonLabel.
   ///
@@ -1154,6 +1178,54 @@ abstract class AppLocalizations {
   /// **'فتح'**
   String get appLockUnlockAction;
 
+  /// No description provided for @appLockBiometricUnlockAction.
+  ///
+  /// In ar, this message translates to:
+  /// **'استخدام البصمة أو الوجه'**
+  String get appLockBiometricUnlockAction;
+
+  /// No description provided for @appLockBiometricReason.
+  ///
+  /// In ar, this message translates to:
+  /// **'فتح Masrofy'**
+  String get appLockBiometricReason;
+
+  /// No description provided for @appLockBiometricUnavailable.
+  ///
+  /// In ar, this message translates to:
+  /// **'فتح القفل بالبصمة أو الوجه غير متاح. استخدم PIN.'**
+  String get appLockBiometricUnavailable;
+
+  /// No description provided for @appLockBiometricEnableTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تفعيل فتح القفل بالبصمة أو الوجه'**
+  String get appLockBiometricEnableTitle;
+
+  /// No description provided for @appLockBiometricEnableSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'استخدم بصمة الإصبع أو الوجه عند توفرها. يظل PIN متاحًا كبديل.'**
+  String get appLockBiometricEnableSubtitle;
+
+  /// No description provided for @appLockBiometricDisableTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعطيل فتح القفل بالبصمة أو الوجه'**
+  String get appLockBiometricDisableTitle;
+
+  /// No description provided for @appLockBiometricEnabledMessage.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تفعيل فتح القفل بالبصمة أو الوجه'**
+  String get appLockBiometricEnabledMessage;
+
+  /// No description provided for @appLockBiometricDisabledMessage.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تعطيل فتح القفل بالبصمة أو الوجه'**
+  String get appLockBiometricDisabledMessage;
+
   /// No description provided for @appLockIncorrectPin.
   ///
   /// In ar, this message translates to:
@@ -1172,17 +1244,23 @@ abstract class AppLocalizations {
   /// **'يحفظ مصروفي البيانات محليًا على هذا الجهاز ولا يحتوي حاليًا على مزامنة خلفية. النسخ الاحتياطية التي تنشئها تحت تحكمك. إزالة التطبيق قد تزيل البيانات المحلية إذا لم تكن هناك نسخة احتياطية، كما أن الوصول على مستوى الجهاز قد يؤثر على الخصوصية.'**
   String get localPrivacyExplanation;
 
-  /// No description provided for @backupPathLabel.
-  ///
-  /// In ar, this message translates to:
-  /// **'مسار ملف النسخة الاحتياطية'**
-  String get backupPathLabel;
-
   /// No description provided for @backupImportDialogTitle.
   ///
   /// In ar, this message translates to:
   /// **'استيراد نسخة احتياطية'**
   String get backupImportDialogTitle;
+
+  /// No description provided for @backupImportInvalidFile.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر ملف نسخة احتياطية JSON صالحًا من Masrofy'**
+  String get backupImportInvalidFile;
+
+  /// No description provided for @backupSelectedFile.
+  ///
+  /// In ar, this message translates to:
+  /// **'الملف المحدد: {fileName}'**
+  String backupSelectedFile(Object fileName);
 
   /// No description provided for @backupImportModeLabel.
   ///
@@ -1345,6 +1423,18 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'إدارة التصنيفات الافتراضية والمخصصة'**
   String get settingsCategoriesSubtitle;
+
+  /// No description provided for @settingsViewOnboardingTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'عرض التعريف مرة أخرى'**
+  String get settingsViewOnboardingTitle;
+
+  /// No description provided for @settingsViewOnboardingSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعادة عرض الجولة الترحيبية بدون تغيير إعدادك'**
+  String get settingsViewOnboardingSubtitle;
 
   /// Category management screen title.
   ///
@@ -1675,6 +1765,84 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'الوجهة المطلوبة غير متاحة.'**
   String get notFoundBody;
+
+  /// No description provided for @onboardingSkip.
+  ///
+  /// In ar, this message translates to:
+  /// **'تخطي'**
+  String get onboardingSkip;
+
+  /// No description provided for @onboardingNext.
+  ///
+  /// In ar, this message translates to:
+  /// **'التالي'**
+  String get onboardingNext;
+
+  /// No description provided for @onboardingBack.
+  ///
+  /// In ar, this message translates to:
+  /// **'رجوع'**
+  String get onboardingBack;
+
+  /// No description provided for @onboardingGetStarted.
+  ///
+  /// In ar, this message translates to:
+  /// **'ابدأ'**
+  String get onboardingGetStarted;
+
+  /// No description provided for @onboardingPageIndicator.
+  ///
+  /// In ar, this message translates to:
+  /// **'الصفحة {page} من {count}'**
+  String onboardingPageIndicator(Object count, Object page);
+
+  /// No description provided for @onboardingWelcomeTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مرحبًا بك في Masrofy'**
+  String get onboardingWelcomeTitle;
+
+  /// No description provided for @onboardingWelcomeBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'تابع دخلك ومصاريفك اليومية بوضوح مع بقاء بياناتك على هذا الجهاز.'**
+  String get onboardingWelcomeBody;
+
+  /// No description provided for @onboardingBudgetsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'ميزانيات وتقارير'**
+  String get onboardingBudgetsTitle;
+
+  /// No description provided for @onboardingBudgetsBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'حدد ميزانيات شهرية للتصنيفات، تابع تقدمك، وراجع رسومًا توضح أين تذهب الأموال.'**
+  String get onboardingBudgetsBody;
+
+  /// No description provided for @onboardingPrivacyTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'خصوصية من البداية'**
+  String get onboardingPrivacyTitle;
+
+  /// No description provided for @onboardingPrivacyBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'أخفِ المبالغ، واستخدم قفل PIN، ويمكنك الفتح بالبصمة أو الوجه عندما يدعم جهازك ذلك.'**
+  String get onboardingPrivacyBody;
+
+  /// No description provided for @onboardingBackupTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'نسخ احتياطي وتصدير'**
+  String get onboardingBackupTitle;
+
+  /// No description provided for @onboardingBackupBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'أنشئ نسخًا احتياطية محلية وصدّر التقارير عندما تحتاج للاحتفاظ بسجلاتك أو مشاركتها.'**
+  String get onboardingBackupBody;
 }
 
 class _AppLocalizationsDelegate

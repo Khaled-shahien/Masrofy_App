@@ -1,12 +1,12 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart' as intl;
 
+import '../../../core/branding/brand_assets.dart';
 import '../../../core/theme/app_design_tokens.dart';
 import '../../../core/theme/masrofy_theme_extension.dart';
+import '../../../data/backup/backup_file_picker.dart';
 import '../../../data/backup/backup_restore_service.dart';
 import '../../../data/export/data_export_service.dart';
 import '../../../di/service_locator.dart';
@@ -150,6 +150,30 @@ class SettingsScreen extends StatelessWidget {
                                   onTap: () => _changeAppLockPin(context),
                                 ),
                                 const Divider(height: AppSpacing.md),
+                                if (appLockState
+                                    .biometricAvailability
+                                    .isAvailable) ...[
+                                  SwitchListTile(
+                                    key: const ValueKey(
+                                      'settings-biometric-switch',
+                                    ),
+                                    contentPadding: EdgeInsets.zero,
+                                    secondary: const Icon(Icons.fingerprint),
+                                    title: Text(
+                                      l10n.appLockBiometricEnableTitle,
+                                    ),
+                                    subtitle: Text(
+                                      l10n.appLockBiometricEnableSubtitle,
+                                    ),
+                                    value: appLockState
+                                        .lockStatus
+                                        .biometricEnabled,
+                                    onChanged: (value) {
+                                      _setBiometricUnlock(context, value);
+                                    },
+                                  ),
+                                  const Divider(height: AppSpacing.md),
+                                ],
                                 _SettingsActionTile(
                                   key: const ValueKey(
                                     'settings-disable-app-lock-tile',
@@ -184,6 +208,16 @@ class SettingsScreen extends StatelessWidget {
                         title: l10n.settingsCategoriesTitle,
                         subtitle: l10n.settingsCategoriesSubtitle,
                         onTap: () => context.push(AppRoutes.categories),
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      _SettingsTile(
+                        key: const ValueKey('settings-onboarding-tile'),
+                        icon: Icons.flag_outlined,
+                        title: l10n.settingsViewOnboardingTitle,
+                        subtitle: l10n.settingsViewOnboardingSubtitle,
+                        onTap: () => context.push(
+                          AppRoutes.onboardingPreview,
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       _SettingsSection(
@@ -238,6 +272,54 @@ class SettingsScreen extends StatelessWidget {
                           ),
                         ],
                       ),
+                      const SizedBox(height: AppSpacing.sm),
+                      _SettingsSection(
+                        title: l10n.settingsAboutTitle,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                  AppRadii.sm,
+                                ),
+                                child: Image.asset(
+                                  BrandAssets.primaryLogo,
+                                  width: 72,
+                                  height: 72,
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                              const SizedBox(width: AppSpacing.md),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      l10n.appName,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleLarge,
+                                    ),
+                                    const SizedBox(height: AppSpacing.xs),
+                                    Text(
+                                      l10n.settingsAboutDescription,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.bodyMedium,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          Text(
+                            l10n.localPrivacyExplanation,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
                       SizedBox(height: padding.bottom),
                     ],
                   ),
@@ -283,14 +365,29 @@ class SettingsScreen extends StatelessWidget {
 
   Future<void> _importBackup(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
-    final request = await showDialog<_BackupImportRequest>(
-      context: context,
-      builder: (_) => _BackupImportDialog(localizations: l10n),
-    );
-    if (request == null || !context.mounted) {
+    PickedBackupFile? pickedFile;
+    try {
+      pickedFile = await serviceLocator<BackupFilePicker>().pickBackupFile();
+    } on BackupFilePickerException {
+      if (context.mounted) {
+        _showSnackBar(context, l10n.backupImportInvalidFile);
+      }
       return;
     }
-    if (request.mode == BackupImportMode.replace) {
+    if (pickedFile == null || !context.mounted) {
+      return;
+    }
+    final mode = await showDialog<BackupImportMode>(
+      context: context,
+      builder: (_) => _BackupImportModeDialog(
+        localizations: l10n,
+        fileName: pickedFile!.name,
+      ),
+    );
+    if (mode == null || !context.mounted) {
+      return;
+    }
+    if (mode == BackupImportMode.replace) {
       final confirmed = await showDialog<bool>(
         context: context,
         builder: (_) => _DangerConfirmDialog(
@@ -307,10 +404,9 @@ class SettingsScreen extends StatelessWidget {
     }
 
     try {
-      final bytes = await File(request.path).readAsBytes();
       await serviceLocator<BackupRestoreService>().restoreBackupBytes(
-        bytes,
-        mode: request.mode,
+        pickedFile.bytes,
+        mode: mode,
       );
       if (!context.mounted) {
         return;
@@ -490,6 +586,40 @@ class SettingsScreen extends StatelessWidget {
       }
     }
   }
+
+  Future<void> _setBiometricUnlock(
+    BuildContext context,
+    bool enabled,
+  ) async {
+    final l10n = AppLocalizations.of(context);
+    final pin = await showDialog<String>(
+      context: context,
+      builder: (_) => _CurrentPinDialog(
+        title: enabled
+            ? l10n.appLockBiometricEnableTitle
+            : l10n.appLockBiometricDisableTitle,
+        localizations: l10n,
+      ),
+    );
+    if (pin == null || !context.mounted) {
+      return;
+    }
+    final success = await context.read<AppLockCubit>().setBiometricEnabled(
+      enabled: enabled,
+      currentPin: pin,
+    );
+    if (!context.mounted) {
+      return;
+    }
+    _showSnackBar(
+      context,
+      success
+          ? enabled
+                ? l10n.appLockBiometricEnabledMessage
+                : l10n.appLockBiometricDisabledMessage
+          : l10n.appLockOperationFailed,
+    );
+  }
 }
 
 class _SettingsSection extends StatelessWidget {
@@ -626,16 +756,6 @@ class _SettingsIcon extends StatelessWidget {
   }
 }
 
-class _BackupImportRequest {
-  const _BackupImportRequest({
-    required this.path,
-    required this.mode,
-  });
-
-  final String path;
-  final BackupImportMode mode;
-}
-
 class _PinChangeRequest {
   const _PinChangeRequest({
     required this.currentPin,
@@ -758,9 +878,13 @@ class _PinSetupDialogState extends State<_PinSetupDialog> {
 }
 
 class _CurrentPinDialog extends StatefulWidget {
-  const _CurrentPinDialog({required this.localizations});
+  const _CurrentPinDialog({
+    required this.localizations,
+    this.title,
+  });
 
   final AppLocalizations localizations;
+  final String? title;
 
   @override
   State<_CurrentPinDialog> createState() => _CurrentPinDialogState();
@@ -781,7 +905,7 @@ class _CurrentPinDialogState extends State<_CurrentPinDialog> {
   Widget build(BuildContext context) {
     final l10n = widget.localizations;
     return AlertDialog(
-      title: Text(l10n.appLockDisableTitle),
+      title: Text(widget.title ?? l10n.appLockDisableTitle),
       content: TextField(
         controller: _controller,
         autofocus: true,
@@ -809,29 +933,26 @@ class _CurrentPinDialogState extends State<_CurrentPinDialog> {
   }
 }
 
-class _BackupImportDialog extends StatefulWidget {
-  const _BackupImportDialog({required this.localizations});
+class _BackupImportModeDialog extends StatefulWidget {
+  const _BackupImportModeDialog({
+    required this.localizations,
+    required this.fileName,
+  });
 
   final AppLocalizations localizations;
+  final String fileName;
 
   @override
-  State<_BackupImportDialog> createState() => _BackupImportDialogState();
+  State<_BackupImportModeDialog> createState() =>
+      _BackupImportModeDialogState();
 }
 
-class _BackupImportDialogState extends State<_BackupImportDialog> {
-  final TextEditingController _pathController = TextEditingController();
+class _BackupImportModeDialogState extends State<_BackupImportModeDialog> {
   BackupImportMode _mode = BackupImportMode.merge;
-
-  @override
-  void dispose() {
-    _pathController.dispose();
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = widget.localizations;
-    final path = _pathController.text.trim();
 
     return AlertDialog(
       title: Text(l10n.backupImportDialogTitle),
@@ -839,15 +960,7 @@ class _BackupImportDialogState extends State<_BackupImportDialog> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          TextField(
-            controller: _pathController,
-            decoration: InputDecoration(
-              labelText: l10n.backupPathLabel,
-              prefixIcon: const Icon(Icons.description_outlined),
-            ),
-            textInputAction: TextInputAction.done,
-            onChanged: (_) => setState(() {}),
-          ),
+          Text(l10n.backupSelectedFile(widget.fileName)),
           const SizedBox(height: AppSpacing.md),
           DropdownButtonFormField<BackupImportMode>(
             initialValue: _mode,
@@ -886,11 +999,7 @@ class _BackupImportDialogState extends State<_BackupImportDialog> {
           child: Text(l10n.commonCancel),
         ),
         FilledButton.icon(
-          onPressed: path.isEmpty
-              ? null
-              : () => Navigator.of(context).pop(
-                  _BackupImportRequest(path: path, mode: _mode),
-                ),
+          onPressed: () => Navigator.of(context).pop(_mode),
           icon: const Icon(Icons.restore_outlined),
           label: Text(l10n.backupImportAction),
         ),

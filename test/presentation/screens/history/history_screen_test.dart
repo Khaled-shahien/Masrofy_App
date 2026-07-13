@@ -134,6 +134,7 @@ class _HistoryHarness {
       watchCategories: WatchCategories(categoryRepository),
       saveTransaction: SaveTransaction(
         repository: transactionRepository,
+        categoryRepository: categoryRepository,
         now: () => DateTime(2026, 7, 12),
       ),
       deleteTransaction: DeleteTransaction(transactionRepository),

@@ -2,10 +2,11 @@
 class StorageSchema {
   const StorageSchema._();
 
-  static const currentVersion = 2;
+  static const currentVersion = 3;
 
   static const metadataBoxName = 'storage_metadata_v1';
-  static const quarantineBoxName = 'storage_quarantine_v1';
+  static const quarantineBoxName = 'storage_quarantine_v2';
+  static const legacyQuarantineBoxName = 'storage_quarantine_v1';
 
   static const categoriesBoxName = 'categories_v2';
   static const transactionsBoxName = 'transactions_v2';

@@ -55,7 +55,10 @@ void main() {
     cubit = TransactionsCubit(
       watchTransactions: WatchTransactions(transactionRepository),
       watchCategories: WatchCategories(categoryRepository),
-      saveTransaction: SaveTransaction(repository: transactionRepository),
+      saveTransaction: SaveTransaction(
+        repository: transactionRepository,
+        categoryRepository: categoryRepository,
+      ),
       deleteTransaction: DeleteTransaction(transactionRepository),
     );
   });

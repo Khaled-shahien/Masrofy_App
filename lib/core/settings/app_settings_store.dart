@@ -8,13 +8,15 @@ class AppSettingsSnapshot {
     required this.localeCode,
     required this.themeMode,
     required this.hideFinancialAmounts,
+    required this.onboardingCompleted,
   });
 
   /// Default preferences used after a full local reset.
   const AppSettingsSnapshot.defaults()
     : localeCode = 'ar',
       themeMode = ThemeMode.system,
-      hideFinancialAmounts = false;
+      hideFinancialAmounts = false,
+      onboardingCompleted = true;
 
   /// The preferred locale language code.
   final String localeCode;
@@ -24,6 +26,9 @@ class AppSettingsSnapshot {
 
   /// Whether user-facing financial amounts should be hidden by default.
   final bool hideFinancialAmounts;
+
+  /// Whether first-run onboarding was completed or intentionally skipped.
+  final bool onboardingCompleted;
 
   /// Decodes and validates a safe settings snapshot.
   factory AppSettingsSnapshot.fromJson(Map<String, dynamic> json) {
@@ -39,6 +44,7 @@ class AppSettingsSnapshot {
       localeCode: localeCode,
       themeMode: _themeModeFromNameStrict(themeMode),
       hideFinancialAmounts: json['hideFinancialAmounts'] as bool? ?? false,
+      onboardingCompleted: json['onboardingCompleted'] as bool? ?? true,
     );
   }
 
@@ -48,6 +54,7 @@ class AppSettingsSnapshot {
       'localeCode': localeCode,
       'themeMode': themeMode.name,
       'hideFinancialAmounts': hideFinancialAmounts,
+      'onboardingCompleted': onboardingCompleted,
     };
   }
 }
@@ -63,6 +70,9 @@ abstract class AppSettingsStore {
   /// Reads whether financial amounts should be hidden.
   bool get hideFinancialAmounts;
 
+  /// Reads whether first-run onboarding is complete.
+  bool get onboardingCompleted;
+
   /// Persists the preferred locale code.
   Future<void> saveLocaleCode(String localeCode);
 
@@ -71,6 +81,15 @@ abstract class AppSettingsStore {
 
   /// Persists whether financial amounts should be hidden.
   Future<void> saveHideFinancialAmounts(bool hideFinancialAmounts);
+
+  /// Persists whether first-run onboarding is complete.
+  Future<void> saveOnboardingCompleted(bool onboardingCompleted);
+
+  /// Marks previous installations as already onboarded when the setting
+  /// did not exist in older app versions.
+  Future<void> migrateOnboardingState({
+    required bool existingInstallation,
+  });
 
   /// Reads the safe settings snapshot that may be backed up.
   AppSettingsSnapshot get safeSnapshot;
@@ -87,6 +106,7 @@ class HiveAppSettingsStore implements AppSettingsStore {
   static const _localeKey = 'locale';
   static const _themeModeKey = 'themeMode';
   static const _hideFinancialAmountsKey = 'hideFinancialAmounts';
+  static const _onboardingCompletedKey = 'onboardingCompleted';
   static const _defaultLocaleCode = 'ar';
 
   final Box<String> _box;
@@ -107,11 +127,17 @@ class HiveAppSettingsStore implements AppSettingsStore {
   }
 
   @override
+  bool get onboardingCompleted {
+    return _box.get(_onboardingCompletedKey) == 'true';
+  }
+
+  @override
   AppSettingsSnapshot get safeSnapshot {
     return AppSettingsSnapshot(
       localeCode: localeCode,
       themeMode: themeMode,
       hideFinancialAmounts: hideFinancialAmounts,
+      onboardingCompleted: onboardingCompleted,
     );
   }
 
@@ -131,10 +157,28 @@ class HiveAppSettingsStore implements AppSettingsStore {
   }
 
   @override
+  Future<void> saveOnboardingCompleted(bool onboardingCompleted) {
+    return _box.put(_onboardingCompletedKey, onboardingCompleted.toString());
+  }
+
+  @override
+  Future<void> migrateOnboardingState({
+    required bool existingInstallation,
+  }) async {
+    if (_box.get(_onboardingCompletedKey) != null) {
+      return;
+    }
+    if (existingInstallation) {
+      await saveOnboardingCompleted(true);
+    }
+  }
+
+  @override
   Future<void> restoreSafeSnapshot(AppSettingsSnapshot snapshot) async {
     await saveLocaleCode(snapshot.localeCode);
     await saveThemeMode(snapshot.themeMode);
     await saveHideFinancialAmounts(snapshot.hideFinancialAmounts);
+    await saveOnboardingCompleted(snapshot.onboardingCompleted);
   }
 }
 
@@ -143,6 +187,8 @@ class InMemoryAppSettingsStore implements AppSettingsStore {
   String _localeCode = 'ar';
   ThemeMode _themeMode = ThemeMode.system;
   bool _hideFinancialAmounts = false;
+  bool _onboardingCompleted = false;
+  bool _hasOnboardingValue = false;
 
   @override
   String get localeCode => _localeCode;
@@ -154,11 +200,15 @@ class InMemoryAppSettingsStore implements AppSettingsStore {
   bool get hideFinancialAmounts => _hideFinancialAmounts;
 
   @override
+  bool get onboardingCompleted => _onboardingCompleted;
+
+  @override
   AppSettingsSnapshot get safeSnapshot {
     return AppSettingsSnapshot(
       localeCode: localeCode,
       themeMode: themeMode,
       hideFinancialAmounts: hideFinancialAmounts,
+      onboardingCompleted: onboardingCompleted,
     );
   }
 
@@ -178,10 +228,31 @@ class InMemoryAppSettingsStore implements AppSettingsStore {
   }
 
   @override
+  Future<void> saveOnboardingCompleted(bool onboardingCompleted) async {
+    _onboardingCompleted = onboardingCompleted;
+    _hasOnboardingValue = true;
+  }
+
+  @override
+  Future<void> migrateOnboardingState({
+    required bool existingInstallation,
+  }) async {
+    if (_hasOnboardingValue) {
+      return;
+    }
+    if (existingInstallation) {
+      _onboardingCompleted = true;
+      _hasOnboardingValue = true;
+    }
+  }
+
+  @override
   Future<void> restoreSafeSnapshot(AppSettingsSnapshot snapshot) async {
     _localeCode = snapshot.localeCode;
     _themeMode = snapshot.themeMode;
     _hideFinancialAmounts = snapshot.hideFinancialAmounts;
+    _onboardingCompleted = snapshot.onboardingCompleted;
+    _hasOnboardingValue = true;
   }
 }
 

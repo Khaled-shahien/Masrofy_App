@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:masrofy/core/security/app_lock_service.dart';
+import 'package:masrofy/core/security/biometric_authentication_service.dart';
 import 'package:masrofy/core/security/secure_value_store.dart';
 import 'package:masrofy/core/settings/app_settings_store.dart';
 import 'package:masrofy/core/theme/app_theme.dart';
@@ -20,6 +21,7 @@ void main() {
         secureStore: InMemorySecureValueStore(),
         hashIterations: 4,
       ),
+      biometricAuthenticationService: InMemoryBiometricAuthenticationService(),
     );
     await appLockCubit.load();
     addTearDown(cubit.close);

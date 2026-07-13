@@ -1,11 +1,11 @@
 {
-    "name": "masrofy",
-    "short_name": "masrofy",
+    "name": "Masrofy",
+    "short_name": "Masrofy",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F7FAFA",
+    "theme_color": "#006D77",
+    "description": "A local-first expense tracker for income, spending, budgets, reports, and backups.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -10,7 +10,7 @@ void main() {
   tearDown(serviceLocator.reset);
 
   test('registers an in-memory category graph and seeds defaults', () async {
-    await configureDependencies();
+    await configureDependencies(allowInMemoryStores: true);
 
     expect(
       serviceLocator<CategoryLocalDataSource>(),

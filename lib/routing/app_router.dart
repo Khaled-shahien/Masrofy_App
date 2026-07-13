@@ -12,6 +12,7 @@ import '../presentation/screens/budgets/budgets_screen.dart';
 import '../presentation/screens/dashboard/dashboard_screen.dart';
 import '../presentation/screens/history/history_screen.dart';
 import '../presentation/screens/not_found_screen.dart';
+import '../presentation/screens/onboarding/onboarding_screen.dart';
 import '../presentation/screens/reports/reports_screen.dart';
 import '../presentation/screens/settings/categories/categories_screen.dart';
 import '../presentation/screens/settings/settings_screen.dart';
@@ -28,6 +29,7 @@ class AppRoutes {
   static const settings = '/settings';
   static const categories = '/settings/categories';
   static const walletBalances = '/settings/wallet-balances';
+  static const onboardingPreview = '/settings/onboarding';
 }
 
 class AppRouter {
@@ -121,6 +123,20 @@ class AppRouter {
           child: BlocProvider(
             create: (context) => serviceLocator<WalletBalancesCubit>()..load(),
             child: const WalletBalancesScreen(),
+          ),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.onboardingPreview,
+        pageBuilder: (context, state) => _fadeThroughPage(
+          state: state,
+          child: OnboardingScreen(
+            previewMode: true,
+            onFinished: () async {
+              if (context.canPop()) {
+                context.pop();
+              }
+            },
           ),
         ),
       ),

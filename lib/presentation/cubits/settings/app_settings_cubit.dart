@@ -13,6 +13,7 @@ class AppSettingsState extends Equatable {
     required this.locale,
     required this.themeMode,
     required this.hideFinancialAmounts,
+    required this.onboardingCompleted,
     this.revealFinancialAmounts = false,
   });
 
@@ -25,6 +26,9 @@ class AppSettingsState extends Equatable {
   /// Whether financial values should be hidden by default.
   final bool hideFinancialAmounts;
 
+  /// Whether first-run onboarding has been completed or skipped.
+  final bool onboardingCompleted;
+
   /// Whether hidden financial values are temporarily visible.
   final bool revealFinancialAmounts;
 
@@ -35,12 +39,14 @@ class AppSettingsState extends Equatable {
     Locale? locale,
     ThemeMode? themeMode,
     bool? hideFinancialAmounts,
+    bool? onboardingCompleted,
     bool? revealFinancialAmounts,
   }) {
     return AppSettingsState(
       locale: locale ?? this.locale,
       themeMode: themeMode ?? this.themeMode,
       hideFinancialAmounts: hideFinancialAmounts ?? this.hideFinancialAmounts,
+      onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
       revealFinancialAmounts:
           revealFinancialAmounts ?? this.revealFinancialAmounts,
     );
@@ -51,6 +57,7 @@ class AppSettingsState extends Equatable {
     locale,
     themeMode,
     hideFinancialAmounts,
+    onboardingCompleted,
     revealFinancialAmounts,
   ];
 }
@@ -65,6 +72,7 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
           locale: Locale(store.localeCode),
           themeMode: store.themeMode,
           hideFinancialAmounts: store.hideFinancialAmounts,
+          onboardingCompleted: store.onboardingCompleted,
         ),
       );
 
@@ -78,6 +86,7 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
         locale: Locale(_store.localeCode),
         themeMode: _store.themeMode,
         hideFinancialAmounts: _store.hideFinancialAmounts,
+        onboardingCompleted: _store.onboardingCompleted,
         revealFinancialAmounts: false,
       ),
     );
@@ -114,6 +123,15 @@ class AppSettingsCubit extends Cubit<AppSettingsState> {
       ),
     );
     await _store.saveHideFinancialAmounts(hideFinancialAmounts);
+  }
+
+  /// Marks onboarding as complete after Skip/Get Started.
+  Future<void> completeOnboarding() async {
+    if (state.onboardingCompleted) {
+      return;
+    }
+    emit(state.copyWith(onboardingCompleted: true));
+    await _store.saveOnboardingCompleted(true);
   }
 
   /// Reveals hidden amounts temporarily, or hides them immediately if visible.

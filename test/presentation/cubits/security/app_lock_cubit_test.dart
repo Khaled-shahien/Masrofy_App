@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:masrofy/core/security/app_lock_service.dart';
+import 'package:masrofy/core/security/biometric_authentication_service.dart';
 import 'package:masrofy/core/security/secure_value_store.dart';
 import 'package:masrofy/presentation/cubits/security/app_lock_cubit.dart';
 
@@ -38,8 +39,13 @@ void main() {
     var now = DateTime(2026, 7, 12, 9);
     final service = _service(InMemorySecureValueStore());
     await service.setupPin('1234');
+    final biometrics = InMemoryBiometricAuthenticationService(
+      availability: const BiometricAvailability.available([]),
+      outcome: BiometricAuthenticationOutcome.success,
+    );
     final cubit = AppLockCubit(
       appLockService: service,
+      biometricAuthenticationService: biometrics,
       now: () => now,
     );
     addTearDown(cubit.close);
@@ -52,11 +58,45 @@ void main() {
 
     expect(cubit.state.isLocked, isTrue);
   });
+
+  test('unlocks with biometrics after PIN setup when available', () async {
+    final service = _service(InMemorySecureValueStore());
+    await service.setupPin('1234');
+    final cubit = _cubit(
+      service: service,
+      biometrics: InMemoryBiometricAuthenticationService(
+        availability: const BiometricAvailability.available([]),
+        outcome: BiometricAuthenticationOutcome.success,
+      ),
+    );
+    addTearDown(cubit.close);
+
+    await cubit.load();
+    final enabled = await cubit.setBiometricEnabled(
+      enabled: true,
+      currentPin: '1234',
+    );
+    expect(enabled, isTrue);
+
+    await cubit.reload();
+    expect(cubit.state.isLocked, isTrue);
+
+    final outcome = await cubit.unlockWithBiometrics(
+      localizedReason: 'Unlock Masrofy',
+    );
+    expect(outcome, BiometricAuthenticationOutcome.success);
+    expect(cubit.state.isLocked, isFalse);
+  });
 }
 
-AppLockCubit _cubit({AppLockService? service}) {
+AppLockCubit _cubit({
+  AppLockService? service,
+  BiometricAuthenticationService? biometrics,
+}) {
   return AppLockCubit(
     appLockService: service ?? _service(InMemorySecureValueStore()),
+    biometricAuthenticationService:
+        biometrics ?? InMemoryBiometricAuthenticationService(),
   );
 }
 

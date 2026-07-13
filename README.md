@@ -1,17 +1,25 @@
-# masrofy
+# Masrofy
 
-A new Flutter project.
+Masrofy is a local-first Flutter expense tracker for recording income and
+expenses, reviewing monthly reports, managing wallets and category budgets, and
+creating local backups.
 
-## Getting Started
+## Privacy model
 
-This project is a starting point for a Flutter application.
+Masrofy keeps app data on the user's device. It does not include a backend,
+cloud sync, Firebase, notifications, advertising, subscriptions, or third-party
+analytics.
 
-A few resources to get you started if this is your first Flutter project:
+## Development
 
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
+Common validation commands:
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```sh
+flutter pub get
+flutter gen-l10n
+dart run build_runner build --delete-conflicting-outputs
+flutter analyze
+flutter test
+flutter build apk --debug
+flutter build web
+```
