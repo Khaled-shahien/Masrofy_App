@@ -148,7 +148,7 @@ flutter_native_splash:
   ios: true
   web: true
   android_12:
-    image: assets/images/branding/masrofy_icon_foreground.png
+    image: assets/images/branding/masrofy_splash_logo.png
     icon_background_color: "#F7FAFA"
-    image_dark: assets/images/branding/masrofy_icon_foreground.png
+    image_dark: assets/images/branding/masrofy_splash_logo.png
     icon_background_color_dark: "#101414"
