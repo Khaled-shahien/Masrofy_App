@@ -124,8 +124,11 @@ across:
 - Dashboard, reports, budgets, history, onboarding, and settings widgets
 - Dependency initialization and startup failure handling
 
-Static analysis also completes without warnings or errors under the documented
-toolchain.
+Static analysis completes without warnings or errors under the documented
+toolchain. The
+[Flutter Quality Checks](https://github.com/Khaled-shahien/masrofy_app/actions/workflows/flutter-quality.yml)
+workflow runs analysis and all non-integration tests for changes targeting
+`main`.
 
 ## Getting Started
 
@@ -209,7 +212,7 @@ privacy or backup controls.
 Masrofy is an actively improved portfolio project. Current priorities include:
 
 - Add anonymized screenshots and a short product walkthrough
-- Run analysis and non-integration tests automatically in GitHub Actions
+- Extend CI with formatting and Android build verification
 - Expand device-backed integration coverage
 - Continue extracting large screens into smaller reusable components
 - Review dependency updates in isolated, tested groups
@@ -217,10 +220,15 @@ Masrofy is an actively improved portfolio project. Current priorities include:
 
 No public store release, APK, or hosted demo is claimed at this time.
 
+## License
+
+No open-source license is currently included. The source is public for
+portfolio review; reuse or redistribution rights are not granted unless a
+license is added later.
+
 ## Contact
 
 For Flutter roles, project collaboration, or code-review enquiries:
 
 - [GitHub](https://github.com/Khaled-shahien)
 - [LinkedIn](https://www.linkedin.com/in/khaled-shahien-18803a1a5/)
-- [Email](mailto:shahienk856@gmail.com)
