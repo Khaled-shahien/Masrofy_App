@@ -26,12 +26,11 @@ class SaveBudgetInput {
 /// Validates and persists monthly category budgets.
 class SaveBudget {
   SaveBudget({
-    required BudgetRepository budgetRepository,
+    required this._budgetRepository,
     required CategoryRepository categoryRepository,
     String Function()? generateId,
     DateTime Function()? now,
-  }) : _budgetRepository = budgetRepository,
-       _categoryRepository = categoryRepository,
+  }) : _categoryRepository = categoryRepository,
        _generateId = generateId ?? const Uuid().v4,
        _now = now ?? DateTime.now;
 

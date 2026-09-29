@@ -67,24 +67,17 @@ class BackupRestoreResult {
 class BackupRestoreService {
   /// Creates a backup service over the local data sources.
   const BackupRestoreService({
-    required TransactionLocalDataSource transactionDataSource,
+    required this._transactionDataSource,
     required CategoryLocalDataSource categoryDataSource,
-    required BudgetLocalDataSource budgetDataSource,
-    required WalletBalanceLocalDataSource walletBalanceDataSource,
-    required AppSettingsStore settingsStore,
-    Iterable<CategoryModel> resetCategories = const [],
+    required this._budgetDataSource,
+    required this._walletBalanceDataSource,
+    required this._settingsStore,
+    this._resetCategories = const [],
     ExportFileNamer? namer,
-    DateTime Function()? now,
-    String? appVersion,
-  }) : _transactionDataSource = transactionDataSource,
-       _categoryDataSource = categoryDataSource,
-       _budgetDataSource = budgetDataSource,
-       _walletBalanceDataSource = walletBalanceDataSource,
-       _settingsStore = settingsStore,
-       _resetCategories = resetCategories,
-       _namer = namer ?? const ExportFileNamer(),
-       _now = now,
-       _appVersion = appVersion;
+    this._now,
+    this._appVersion,
+  }) : _categoryDataSource = categoryDataSource,
+       _namer = namer ?? const ExportFileNamer();
 
   static const int backupFormatVersion = 1;
 

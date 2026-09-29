@@ -6,13 +6,11 @@ import 'app_lock_state.dart';
 
 class AppLockCubit extends Cubit<AppLockState> {
   AppLockCubit({
-    required AppLockService appLockService,
+    required this._appLockService,
     required BiometricAuthenticationService biometricAuthenticationService,
-    AppLockLifecyclePolicy lifecyclePolicy = const AppLockLifecyclePolicy(),
+    this._lifecyclePolicy = const AppLockLifecyclePolicy(),
     DateTime Function()? now,
-  }) : _appLockService = appLockService,
-       _biometricAuthenticationService = biometricAuthenticationService,
-       _lifecyclePolicy = lifecyclePolicy,
+  }) : _biometricAuthenticationService = biometricAuthenticationService,
        _now = now ?? DateTime.now,
        super(const AppLockState());
 

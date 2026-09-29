@@ -3,7 +3,7 @@ import '../../entities/financial_transaction.dart';
 import '../../entities/transaction_type.dart';
 
 class BuildDashboardSummary {
-  const BuildDashboardSummary({DateTime Function()? now}) : _now = now;
+  const BuildDashboardSummary({this._now});
 
   final DateTime Function()? _now;
 

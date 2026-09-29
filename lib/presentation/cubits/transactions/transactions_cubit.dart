@@ -15,14 +15,11 @@ import 'transactions_state.dart';
 
 class TransactionsCubit extends Cubit<TransactionsState> {
   TransactionsCubit({
-    required WatchTransactions watchTransactions,
+    required this._watchTransactions,
     required WatchCategories watchCategories,
-    required SaveTransaction saveTransaction,
-    required DeleteTransaction deleteTransaction,
-  }) : _watchTransactions = watchTransactions,
-       _watchCategories = watchCategories,
-       _saveTransaction = saveTransaction,
-       _deleteTransaction = deleteTransaction,
+    required this._saveTransaction,
+    required this._deleteTransaction,
+  }) : _watchCategories = watchCategories,
        super(const TransactionsState());
 
   final WatchTransactions _watchTransactions;

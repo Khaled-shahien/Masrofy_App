@@ -18,14 +18,11 @@ export 'categories_state.dart';
 class CategoriesCubit extends Cubit<CategoriesState> {
   /// Creates a category Cubit backed by domain use cases.
   CategoriesCubit({
-    required WatchCategories watchCategories,
+    required this._watchCategories,
     required SaveCustomCategory saveCustomCategory,
-    required SetCategoryVisibility setCategoryVisibility,
-    required SetCategoryDefaultWallet setCategoryDefaultWallet,
-  }) : _watchCategories = watchCategories,
-       _saveCustomCategory = saveCustomCategory,
-       _setCategoryVisibility = setCategoryVisibility,
-       _setCategoryDefaultWallet = setCategoryDefaultWallet,
+    required this._setCategoryVisibility,
+    required this._setCategoryDefaultWallet,
+  }) : _saveCustomCategory = saveCustomCategory,
        super(const CategoriesState());
 
   final WatchCategories _watchCategories;

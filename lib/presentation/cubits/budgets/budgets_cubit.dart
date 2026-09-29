@@ -18,19 +18,14 @@ import 'budgets_state.dart';
 
 class BudgetsCubit extends Cubit<BudgetsState> {
   BudgetsCubit({
-    required WatchBudgets watchBudgets,
+    required this._watchBudgets,
     required WatchTransactions watchTransactions,
-    required WatchCategories watchCategories,
-    required SaveBudget saveBudget,
-    required DeleteBudget deleteBudget,
-    required CalculateBudgetProgress calculateBudgetProgress,
+    required this._watchCategories,
+    required this._saveBudget,
+    required this._deleteBudget,
+    required this._calculateBudgetProgress,
     DateTime Function()? now,
-  }) : _watchBudgets = watchBudgets,
-       _watchTransactions = watchTransactions,
-       _watchCategories = watchCategories,
-       _saveBudget = saveBudget,
-       _deleteBudget = deleteBudget,
-       _calculateBudgetProgress = calculateBudgetProgress,
+  }) : _watchTransactions = watchTransactions,
        super(BudgetsState(selectedPeriod: _initialPeriod(now)));
 
   final WatchBudgets _watchBudgets;

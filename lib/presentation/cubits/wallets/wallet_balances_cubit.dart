@@ -13,12 +13,10 @@ import 'wallet_balances_state.dart';
 
 class WalletBalancesCubit extends Cubit<WalletBalancesState> {
   WalletBalancesCubit({
-    required WalletBalanceRepository walletBalanceRepository,
+    required this._walletBalanceRepository,
     required TransactionRepository transactionRepository,
-    required SetWalletCurrentBalance setWalletCurrentBalance,
-  }) : _walletBalanceRepository = walletBalanceRepository,
-       _transactionRepository = transactionRepository,
-       _setWalletCurrentBalance = setWalletCurrentBalance,
+    required this._setWalletCurrentBalance,
+  }) : _transactionRepository = transactionRepository,
        super(const WalletBalancesState());
 
   final WalletBalanceRepository _walletBalanceRepository;

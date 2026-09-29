@@ -5,7 +5,7 @@ import '../../entities/transaction_type.dart';
 
 /// Aggregates filtered local transactions into report-ready summaries.
 class BuildReport {
-  const BuildReport({DateTime Function()? now}) : _now = now;
+  const BuildReport({this._now});
 
   final DateTime Function()? _now;
 

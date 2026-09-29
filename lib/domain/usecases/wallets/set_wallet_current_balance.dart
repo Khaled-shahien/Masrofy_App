@@ -6,11 +6,10 @@ import 'wallet_balance_calculator.dart';
 
 class SetWalletCurrentBalance {
   SetWalletCurrentBalance({
-    required WalletBalanceRepository walletBalanceRepository,
+    required this._walletBalanceRepository,
     required TransactionRepository transactionRepository,
     DateTime Function()? now,
-  }) : _walletBalanceRepository = walletBalanceRepository,
-       _transactionRepository = transactionRepository,
+  }) : _transactionRepository = transactionRepository,
        _now = now ?? DateTime.now;
 
   final WalletBalanceRepository _walletBalanceRepository;

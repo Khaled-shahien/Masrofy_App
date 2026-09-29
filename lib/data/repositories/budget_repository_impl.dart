@@ -6,8 +6,8 @@ import '../models/budget_model.dart';
 
 class BudgetRepositoryImpl implements BudgetRepository {
   const BudgetRepositoryImpl({
-    required BudgetLocalDataSource localDataSource,
-  }) : _localDataSource = localDataSource;
+    required this._localDataSource,
+  });
 
   final BudgetLocalDataSource _localDataSource;
 

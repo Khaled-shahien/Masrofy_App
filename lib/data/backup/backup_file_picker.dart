@@ -34,10 +34,9 @@ abstract interface class BackupFilePicker {
 
 class PlatformBackupFilePicker implements BackupFilePicker {
   const PlatformBackupFilePicker({
-    FilePicker? filePicker,
+    this._filePicker,
     int maxBytes = 10 * 1024 * 1024,
-  }) : _filePicker = filePicker,
-       _maxBytes = maxBytes;
+  }) : _maxBytes = maxBytes;
 
   final FilePicker? _filePicker;
   final int _maxBytes;

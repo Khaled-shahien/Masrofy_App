@@ -93,16 +93,12 @@ class AppLockLifecyclePolicy {
 
 class AppLockService {
   AppLockService({
-    required SecureValueStore secureStore,
+    required this._secureStore,
     Random? random,
-    int hashIterations = 12000,
-    int maxFailedAttempts = 5,
-    Duration lockoutDuration = const Duration(minutes: 5),
-  }) : _secureStore = secureStore,
-       _random = random ?? Random.secure(),
-       _hashIterations = hashIterations,
-       _maxFailedAttempts = maxFailedAttempts,
-       _lockoutDuration = lockoutDuration;
+    this._hashIterations = 12000,
+    this._maxFailedAttempts = 5,
+    this._lockoutDuration = const Duration(minutes: 5),
+  }) : _random = random ?? Random.secure();
 
   static const defaultPrivacyTimeout = Duration(seconds: 30);
 

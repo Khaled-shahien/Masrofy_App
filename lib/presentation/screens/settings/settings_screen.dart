@@ -112,21 +112,24 @@ class SettingsScreen extends StatelessWidget {
                           return _SettingsSection(
                             title: l10n.privacySecuritySectionTitle,
                             children: [
-                              SwitchListTile(
-                                contentPadding: EdgeInsets.zero,
-                                secondary: const Icon(
-                                  Icons.visibility_off_outlined,
+                              Material(
+                                color: Colors.transparent,
+                                child: SwitchListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  secondary: const Icon(
+                                    Icons.visibility_off_outlined,
+                                  ),
+                                  title: Text(l10n.hideFinancialAmountsTitle),
+                                  subtitle: Text(
+                                    l10n.hideFinancialAmountsSubtitle,
+                                  ),
+                                  value: settings.hideFinancialAmounts,
+                                  onChanged: (value) {
+                                    context
+                                        .read<AppSettingsCubit>()
+                                        .setHideFinancialAmounts(value);
+                                  },
                                 ),
-                                title: Text(l10n.hideFinancialAmountsTitle),
-                                subtitle: Text(
-                                  l10n.hideFinancialAmountsSubtitle,
-                                ),
-                                value: settings.hideFinancialAmounts,
-                                onChanged: (value) {
-                                  context
-                                      .read<AppSettingsCubit>()
-                                      .setHideFinancialAmounts(value);
-                                },
                               ),
                               const Divider(height: AppSpacing.md),
                               if (!appLockState.isEnabled)
@@ -153,24 +156,27 @@ class SettingsScreen extends StatelessWidget {
                                 if (appLockState
                                     .biometricAvailability
                                     .isAvailable) ...[
-                                  SwitchListTile(
-                                    key: const ValueKey(
-                                      'settings-biometric-switch',
+                                  Material(
+                                    color: Colors.transparent,
+                                    child: SwitchListTile(
+                                      key: const ValueKey(
+                                        'settings-biometric-switch',
+                                      ),
+                                      contentPadding: EdgeInsets.zero,
+                                      secondary: const Icon(Icons.fingerprint),
+                                      title: Text(
+                                        l10n.appLockBiometricEnableTitle,
+                                      ),
+                                      subtitle: Text(
+                                        l10n.appLockBiometricEnableSubtitle,
+                                      ),
+                                      value: appLockState
+                                          .lockStatus
+                                          .biometricEnabled,
+                                      onChanged: (value) {
+                                        _setBiometricUnlock(context, value);
+                                      },
                                     ),
-                                    contentPadding: EdgeInsets.zero,
-                                    secondary: const Icon(Icons.fingerprint),
-                                    title: Text(
-                                      l10n.appLockBiometricEnableTitle,
-                                    ),
-                                    subtitle: Text(
-                                      l10n.appLockBiometricEnableSubtitle,
-                                    ),
-                                    value: appLockState
-                                        .lockStatus
-                                        .biometricEnabled,
-                                    onChanged: (value) {
-                                      _setBiometricUnlock(context, value);
-                                    },
                                   ),
                                   const Divider(height: AppSpacing.md),
                                 ],
@@ -672,21 +678,20 @@ class _SettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: _SettingsIcon(icon: icon),
-      title: Text(title),
-      subtitle: subtitle == null ? null : Text(subtitle!),
-      trailing: onTap == null ? null : Icon(_chevronIcon(context)),
-      onTap: onTap,
-      tileColor: Theme.of(
-        context,
-      ).extension<MasrofyThemeExtension>()!.elevatedSurface,
-      shape: RoundedRectangleBorder(
-        borderRadius: AppRadii.card,
-        side: BorderSide(
-          color: Theme.of(
-            context,
-          ).extension<MasrofyThemeExtension>()!.cardBorder,
+    final theme = Theme.of(context).extension<MasrofyThemeExtension>()!;
+
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        leading: _SettingsIcon(icon: icon),
+        title: Text(title),
+        subtitle: subtitle == null ? null : Text(subtitle!),
+        trailing: onTap == null ? null : Icon(_chevronIcon(context)),
+        onTap: onTap,
+        tileColor: theme.elevatedSurface,
+        shape: RoundedRectangleBorder(
+          borderRadius: AppRadii.card,
+          side: BorderSide(color: theme.cardBorder),
         ),
       ),
     );
@@ -716,13 +721,23 @@ class _SettingsActionTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: _SettingsIcon(icon: icon),
-      title: Text(title),
-      subtitle: Text(subtitle),
-      trailing: Icon(_chevronIcon(context)),
-      onTap: onTap,
+    final theme = Theme.of(context).extension<MasrofyThemeExtension>()!;
+
+    return Material(
+      color: Colors.transparent,
+      child: ListTile(
+        contentPadding: EdgeInsets.zero,
+        leading: _SettingsIcon(icon: icon),
+        title: Text(title),
+        subtitle: Text(subtitle),
+        trailing: Icon(_chevronIcon(context)),
+        onTap: onTap,
+        tileColor: theme.elevatedSurface,
+        shape: RoundedRectangleBorder(
+          borderRadius: AppRadii.card,
+          side: BorderSide(color: theme.cardBorder),
+        ),
+      ),
     );
   }
 

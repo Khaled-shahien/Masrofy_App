@@ -14,15 +14,12 @@ import '../storage_key_store.dart';
 /// Runs ordered, retryable storage migrations for the app's local boxes.
 class StorageMigrationManager {
   StorageMigrationManager({
-    required StorageEncryptionService encryptionService,
+    required this._encryptionService,
     required bool encryptedDataExists,
-    required StorageQuarantineStore quarantineStore,
-    Box<String>? legacyQuarantineBox,
+    required this._quarantineStore,
+    this._legacyQuarantineBox,
     Box<String>? metadataBox,
-  }) : _encryptionService = encryptionService,
-       _encryptedDataExists = encryptedDataExists,
-       _quarantineStore = quarantineStore,
-       _legacyQuarantineBox = legacyQuarantineBox,
+  }) : _encryptedDataExists = encryptedDataExists,
        _metadataBox =
            metadataBox ?? Hive.box<String>(StorageSchema.metadataBoxName);
 

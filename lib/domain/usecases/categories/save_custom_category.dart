@@ -11,10 +11,9 @@ typedef CategoryIdGenerator = String Function();
 class SaveCustomCategory {
   /// Creates the custom-category saver.
   const SaveCustomCategory({
-    required CategoryRepository repository,
+    required this._repository,
     required CategoryIdGenerator generateId,
-  }) : _repository = repository,
-       _generateId = generateId;
+  }) : _generateId = generateId;
 
   final CategoryRepository _repository;
   final CategoryIdGenerator _generateId;

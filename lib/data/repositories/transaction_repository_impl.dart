@@ -5,8 +5,8 @@ import '../models/financial_transaction_model.dart';
 
 class TransactionRepositoryImpl implements TransactionRepository {
   const TransactionRepositoryImpl({
-    required TransactionLocalDataSource localDataSource,
-  }) : _localDataSource = localDataSource;
+    required this._localDataSource,
+  });
 
   final TransactionLocalDataSource _localDataSource;
 

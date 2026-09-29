@@ -46,12 +46,11 @@ class TransactionValidationException implements Exception {
 
 class SaveTransaction {
   SaveTransaction({
-    required TransactionRepository repository,
+    required this._repository,
     required CategoryRepository categoryRepository,
     String Function()? generateId,
     DateTime Function()? now,
-  }) : _repository = repository,
-       _categoryRepository = categoryRepository,
+  }) : _categoryRepository = categoryRepository,
        _generateId = generateId ?? const Uuid().v4,
        _now = now ?? DateTime.now;
 

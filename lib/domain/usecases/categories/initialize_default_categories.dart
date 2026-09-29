@@ -5,10 +5,9 @@ import '../../repositories/category_repository.dart';
 class InitializeDefaultCategories {
   /// Creates the default-category initializer.
   const InitializeDefaultCategories({
-    required CategoryRepository repository,
+    required this._repository,
     required List<Category> defaults,
-  }) : _repository = repository,
-       _defaults = defaults;
+  }) : _defaults = defaults;
 
   final CategoryRepository _repository;
   final List<Category> _defaults;

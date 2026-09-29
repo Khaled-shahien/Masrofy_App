@@ -6,8 +6,8 @@ import '../models/wallet_balance_model.dart';
 
 class WalletBalanceRepositoryImpl implements WalletBalanceRepository {
   const WalletBalanceRepositoryImpl({
-    required WalletBalanceLocalDataSource localDataSource,
-  }) : _localDataSource = localDataSource;
+    required this._localDataSource,
+  });
 
   final WalletBalanceLocalDataSource _localDataSource;
 

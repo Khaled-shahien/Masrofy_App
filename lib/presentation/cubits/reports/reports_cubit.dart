@@ -14,12 +14,10 @@ import 'reports_state.dart';
 
 class ReportsCubit extends Cubit<ReportsState> {
   ReportsCubit({
-    required WatchTransactions watchTransactions,
+    required this._watchTransactions,
     required WatchCategories watchCategories,
-    required BuildReport buildReport,
-  }) : _watchTransactions = watchTransactions,
-       _watchCategories = watchCategories,
-       _buildReport = buildReport,
+    required this._buildReport,
+  }) : _watchCategories = watchCategories,
        super(const ReportsState());
 
   final WatchTransactions _watchTransactions;

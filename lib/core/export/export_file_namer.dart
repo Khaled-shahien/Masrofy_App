@@ -1,6 +1,6 @@
 /// Builds stable, non-sensitive export file names.
 class ExportFileNamer {
-  const ExportFileNamer({DateTime Function()? now}) : _now = now;
+  const ExportFileNamer({this._now});
 
   final DateTime Function()? _now;
 

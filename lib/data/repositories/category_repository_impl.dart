@@ -6,10 +6,10 @@ import '../models/category_model.dart';
 
 /// Implements category persistence using a local source of truth.
 class CategoryRepositoryImpl implements CategoryRepository {
-  /// Creates a category repository backed by [localDataSource].
+  /// Creates a category repository backed by [_localDataSource].
   const CategoryRepositoryImpl({
-    required CategoryLocalDataSource localDataSource,
-  }) : _localDataSource = localDataSource;
+    required this._localDataSource,
+  });
 
   final CategoryLocalDataSource _localDataSource;
 
