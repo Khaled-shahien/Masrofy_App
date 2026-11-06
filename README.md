@@ -231,4 +231,4 @@ license is added later.
 For Flutter roles, project collaboration, or code-review enquiries:
 
 - [GitHub](https://github.com/Khaled-shahien)
-- [LinkedIn](https://www.linkedin.com/in/khaled-shahien-18803a1a5/)
+- [LinkedIn](https://www.linkedin.com/in/khaled-shahien/)
